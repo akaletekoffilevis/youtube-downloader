@@ -1,0 +1,767 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design Mockup - YouTube Downloader</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #1a1a2e;
+  color: #fff;
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+h1 { font-size: 24px; margin-bottom: 4px; }
+.subtitle { color: #888; margin-bottom: 24px; font-size: 14px; text-align: center; }
+
+/* ===== Mockup ===== */
+.mockup {
+  width: 1100px;
+  max-width: 100%;
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  margin-bottom: 30px;
+  position: relative;
+}
+
+/* ===== THEME MOCHA ===== */
+.theme-mocha {
+  --bg: #faf4e8;
+  --surface: #f2ebe1;
+  --text: #5c4a3a;
+  --text-secondary: #8a7a6a;
+  --primary: #a4785a;
+  --primary-hover: #8c6448;
+  --border: #dcd0c0;
+  --card-bg: #ffffff;
+  --success: #6b8f5e;
+  --error: #c45a5a;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --overlay: rgba(92, 74, 58, 0.3);
+}
+.theme-mocha { background: var(--bg); color: var(--text); }
+.theme-mocha .topbar { background: var(--surface); border-color: var(--border); }
+.theme-mocha .topbar h3 { color: var(--text); }
+.theme-mocha .search-wrap input { background: #fff; border-color: var(--border); color: var(--text); }
+.theme-mocha .search-wrap input:focus { border-color: var(--primary); }
+.theme-mocha .search-wrap button { background: var(--primary); color: #fff; }
+.theme-mocha .search-wrap button:hover { background: var(--primary-hover); }
+.theme-mocha .card { background: var(--card-bg); border-color: var(--border); }
+.theme-mocha .card:hover { box-shadow: 0 6px 20px rgba(92,74,58,0.1); }
+.theme-mocha .card .author { color: var(--text-secondary); }
+.theme-mocha .card .badge { background: rgba(0,0,0,0.7); color: #fff; }
+.theme-mocha .card .dl-btn { background: var(--primary); color: #fff; }
+.theme-mocha .card .dl-btn:hover { background: var(--primary-hover); }
+.theme-mocha .folder-row { background: var(--surface); border-color: var(--border); }
+.theme-mocha .folder-row .path { color: var(--text-secondary); }
+.theme-mocha .folder-row .changer { color: var(--text); border-color: var(--border); }
+.theme-mocha .folder-row .changer:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.theme-mocha .queue-overlay { background: var(--overlay); }
+.theme-mocha .queue-panel { background: var(--surface); border-left-color: var(--border); }
+.theme-mocha .queue-header { border-color: var(--border); }
+.theme-mocha .queue-badge { background: var(--primary); color: #fff; }
+.theme-mocha .q-item { background: #fff; border-color: var(--border); }
+.theme-mocha .q-item .q-meta { color: var(--text-secondary); }
+.theme-mocha .progress-bg { background: #e8e0d4; }
+.theme-mocha .progress-fill { background: var(--primary); }
+.theme-mocha .toast-wrap { background: var(--text); color: var(--bg); }
+
+/* ===== THEME NORD ===== */
+.theme-nord {
+  --bg: #e5e9f0;
+  --surface: #d8dee9;
+  --text: #2e3440;
+  --text-secondary: #5e6a7e;
+  --primary: #5e81ac;
+  --primary-hover: #4a6a8c;
+  --border: #c0c8d8;
+  --card-bg: #ffffff;
+  --success: #6b8f5e;
+  --error: #c45a5a;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --overlay: rgba(46, 52, 64, 0.3);
+}
+.theme-nord { background: var(--bg); color: var(--text); }
+.theme-nord .topbar { background: var(--surface); border-color: var(--border); }
+.theme-nord .topbar h3 { color: var(--text); }
+.theme-nord .search-wrap input { background: #fff; border-color: var(--border); color: var(--text); }
+.theme-nord .search-wrap input:focus { border-color: var(--primary); }
+.theme-nord .search-wrap button { background: var(--primary); color: #fff; }
+.theme-nord .search-wrap button:hover { background: var(--primary-hover); }
+.theme-nord .card { background: var(--card-bg); border-color: var(--border); }
+.theme-nord .card:hover { box-shadow: 0 6px 20px rgba(46,52,64,0.1); }
+.theme-nord .card .author { color: var(--text-secondary); }
+.theme-nord .card .badge { background: rgba(0,0,0,0.7); color: #fff; }
+.theme-nord .card .dl-btn { background: var(--primary); color: #fff; }
+.theme-nord .card .dl-btn:hover { background: var(--primary-hover); }
+.theme-nord .folder-row { background: var(--surface); border-color: var(--border); }
+.theme-nord .folder-row .path { color: var(--text-secondary); }
+.theme-nord .folder-row .changer { color: var(--text); border-color: var(--border); }
+.theme-nord .folder-row .changer:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.theme-nord .queue-overlay { background: var(--overlay); }
+.theme-nord .queue-panel { background: var(--surface); border-left-color: var(--border); }
+.theme-nord .queue-header { border-color: var(--border); }
+.theme-nord .queue-badge { background: var(--primary); color: #fff; }
+.theme-nord .q-item { background: #fff; border-color: var(--border); }
+.theme-nord .q-item .q-meta { color: var(--text-secondary); }
+.theme-nord .progress-bg { background: #c8d0e0; }
+.theme-nord .progress-fill { background: var(--primary); }
+.theme-nord .toast-wrap { background: var(--text); color: var(--bg); }
+
+/* ===== TOPBAR ===== */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  border-bottom: 1px solid;
+}
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.topbar-left i.fa-download { font-size: 16px; }
+.topbar-left h3 { font-size: 16px; font-weight: 700; }
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.topbar-btn {
+  width: 34px; height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 15px;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+  position: relative;
+}
+.topbar-btn:hover { background: var(--border); color: var(--text); }
+.topbar-btn .count {
+  position: absolute;
+  top: -4px; right: -4px;
+  width: 16px; height: 16px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== CONTENT ===== */
+.content {
+  padding: 16px 18px;
+  position: relative;
+  min-height: 400px;
+}
+
+/* Search */
+.search-wrap {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.search-wrap .input-ic {
+  flex: 1;
+  position: relative;
+}
+.search-wrap .input-ic i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+.search-wrap input {
+  width: 100%;
+  padding: 10px 12px 10px 34px;
+  border: 1.5px solid;
+  border-radius: var(--radius);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-wrap button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Folder row */
+.folder-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid;
+  border-radius: var(--radius-sm);
+  margin-bottom: 14px;
+  font-size: 12px;
+}
+.folder-row i { font-size: 13px; color: var(--primary); }
+.folder-row .path {
+  flex: 1;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.folder-row .changer {
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+/* Results */
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Card */
+.card {
+  display: flex;
+  border: 1px solid;
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: transform 0.15s, box-shadow 0.15s;
+  cursor: default;
+}
+.card:hover {
+  transform: translateY(-1px);
+}
+.card .thumb {
+  position: relative;
+  width: 180px;
+  min-height: 100px;
+  flex-shrink: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+.card .thumb .play-hover {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.2);
+  opacity: 0;
+  transition: opacity 0.2s;
+  cursor: pointer;
+}
+.card .thumb:hover .play-hover { opacity: 1; }
+.card .thumb .play-hover i { font-size: 32px; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+.card .badge {
+  position: absolute;
+  bottom: 5px; right: 5px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+}
+.card .info {
+  flex: 1;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.card .title {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.card .meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+.card .meta-row i { font-size: 11px; width: 14px; text-align: center; }
+.card .actions {
+  display: flex;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 6px;
+}
+.card .dl-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.card .preview-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+.card .preview-btn:hover { background: var(--border); color: var(--text); }
+
+/* ===== QUEUE OVERLAY ===== */
+.queue-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: flex-end;
+  opacity: 0.95;
+}
+.queue-panel {
+  width: 320px;
+  border-left: 1px solid;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -6px 0 24px rgba(0,0,0,0.08);
+}
+.queue-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid;
+}
+.queue-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.queue-header-left i { font-size: 13px; color: var(--primary); }
+.queue-badge {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+.queue-close {
+  width: 28px; height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 15px;
+  transition: all 0.2s;
+}
+.queue-close:hover { background: var(--border); color: var(--text); }
+
+.queue-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.q-item {
+  border: 1px solid;
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  margin-bottom: 8px;
+}
+.q-item .q-title {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.q-item .q-bar { height: 3px; border-radius: 2px; margin: 6px 0; overflow: hidden; }
+.q-item .q-bar .q-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+.q-item .q-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+}
+.q-item .q-footer .q-meta { display: flex; align-items: center; gap: 4px; }
+.q-item .q-cancel {
+  padding: 3px 8px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-size: 10px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.q-item .q-cancel:hover { border-color: var(--error); color: var(--error); }
+.q-actions { display: flex; gap: 4px; }
+.q-act { transition: all 0.2s; }
+.q-act:hover { border-color: var(--primary) !important; color: var(--primary) !important; }
+
+/* Status variants */
+.q-item.finished { border-color: var(--success); }
+.q-item.finished .q-fill { background: var(--success); }
+.q-item.error { border-color: var(--error); }
+.q-item.error .q-fill { background: var(--error); }
+
+/* Toast */
+.toast-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Annotation */
+.annotation {
+  max-width: 1100px;
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  border-radius: 10px;
+  padding: 16px 20px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #ccc;
+  border-left: 3px solid var(--primary);
+  margin-top: 14px;
+}
+.annotation strong { color: #fff; }
+.annotation ul { margin: 8px 0 0 20px; }
+.annotation li { margin-bottom: 4px; }
+.annotation code { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+.highlight { color: #fff; }
+</style>
+</head>
+<body>
+
+<h1><i class="fas fa-paint-brush"></i> YouTube Downloader — Design</h1>
+<p class="subtitle">Taille écran PC standard · Queue en overlay (ouverture/fermeture) · Annulation de téléchargement · 2 thèmes</p>
+
+<!-- ===== THEME MOCHA ===== -->
+<div class="mockup theme-mocha">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <i class="fas fa-download" style="color:var(--primary)"></i>
+      <h3>YT Downloader</h3>
+    </div>
+    <div class="topbar-right">
+      <span style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:4px">
+        <i class="fas fa-circle" style="font-size:7px;color:var(--success)"></i> Connecté
+      </span>
+      <button class="topbar-btn"><i class="fas fa-palette"></i></button>
+      <button class="topbar-btn" style="background:var(--border)">
+        <i class="fas fa-list"></i>
+        <span class="count">3</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content" style="position:relative">
+    <!-- Search -->
+    <div class="search-wrap">
+      <div class="input-ic">
+        <i class="fas fa-search"></i>
+        <input type="text" value="lofi hip hop radio" placeholder="Rechercher une vidéo ou coller une URL...">
+      </div>
+      <button><i class="fas fa-magnifying-glass"></i> Rechercher</button>
+    </div>
+
+    <!-- Folder picker -->
+    <div class="folder-row">
+      <i class="fas fa-folder-open"></i>
+      <span class="path">~/Downloads/YoutubeDownloader</span>
+      <button class="changer"><i class="fas fa-folder-plus"></i> Changer</button>
+    </div>
+
+    <!-- Results -->
+    <div class="results">
+      <!-- Card 1 - LIVE -->
+      <div class="card">
+        <div class="thumb" style="background:linear-gradient(135deg,#667eea,#764ba2)">
+          <div class="play-hover"><i class="fas fa-circle-play"></i></div>
+          <span class="badge"><i class="fas fa-circle" style="font-size:5px;color:#ff4444;margin-right:3px;vertical-align:middle"></i>LIVE</span>
+        </div>
+        <div class="info">
+          <div class="title">Lofi Hip Hop Radio — Beats to Relax/Study to</div>
+          <div class="meta-row"><i class="fas fa-user"></i> Lofi Girl <span style="color:var(--text-secondary)">·</span> <i class="fas fa-eye"></i> 280M <span style="color:var(--text-secondary)">·</span> <i class="fas fa-calendar"></i> 5 févr. 2020</div>
+          <div class="actions">
+            <button class="dl-btn"><i class="fas fa-circle-down"></i> Télécharger</button>
+            <button class="preview-btn"><i class="fas fa-play"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="card">
+        <div class="thumb" style="background:linear-gradient(135deg,#f093fb,#f5576c)">
+          <div class="play-hover"><i class="fas fa-circle-play"></i></div>
+          <span class="badge">12:34</span>
+        </div>
+        <div class="info">
+          <div class="title">Comment j'ai appris à coder en 2026 — Mon parcours complet</div>
+          <div class="meta-row"><i class="fas fa-user"></i> Code avec moi <span style="color:var(--text-secondary)">·</span> <i class="fas fa-eye"></i> 45K <span style="color:var(--text-secondary)">·</span> <i class="fas fa-calendar"></i> 2 mars 2026</div>
+          <div class="actions">
+            <button class="dl-btn"><i class="fas fa-circle-down"></i> Télécharger</button>
+            <button class="preview-btn"><i class="fas fa-play"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="card">
+        <div class="thumb" style="background:linear-gradient(135deg,#4facfe,#00f2fe)">
+          <div class="play-hover"><i class="fas fa-circle-play"></i></div>
+          <span class="badge">3:51</span>
+        </div>
+        <div class="info">
+          <div class="title">Mac DeMarco — Chamber of Reflection (Official Audio)</div>
+          <div class="meta-row"><i class="fas fa-user"></i> Mac DeMarco <span style="color:var(--text-secondary)">·</span> <i class="fas fa-eye"></i> 180M <span style="color:var(--text-secondary)">·</span> <i class="fas fa-calendar"></i> 12 janv. 2019</div>
+          <div class="actions">
+            <button class="dl-btn"><i class="fas fa-circle-down"></i> Télécharger</button>
+            <button class="preview-btn"><i class="fas fa-play"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4 -->
+      <div class="card">
+        <div class="thumb" style="background:linear-gradient(135deg,#fa709a,#fee140)">
+          <div class="play-hover"><i class="fas fa-circle-play"></i></div>
+          <span class="badge">18:22</span>
+        </div>
+        <div class="info">
+          <div class="title">Tauri vs Electron : Lequel choisir pour vos apps desktop ?</div>
+          <div class="meta-row"><i class="fas fa-user"></i> DevTech France <span style="color:var(--text-secondary)">·</span> <i class="fas fa-eye"></i> 12K <span style="color:var(--text-secondary)">·</span> <i class="fas fa-calendar"></i> 15 avr. 2026</div>
+          <div class="actions">
+            <button class="dl-btn"><i class="fas fa-circle-down"></i> Télécharger</button>
+            <button class="preview-btn"><i class="fas fa-play"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Queue Overlay -->
+    <div class="queue-overlay">
+      <div class="queue-panel">
+        <div class="queue-header">
+          <div class="queue-header-left">
+            <i class="fas fa-list-ol"></i> File d'attente
+            <span class="queue-badge">3</span>
+          </div>
+          <button class="queue-close"><i class="fas fa-xmark"></i></button>
+        </div>
+        <div class="queue-body">
+          <!-- Item 1 - downloading (en cours) -->
+          <div class="q-item">
+            <div class="q-title"><i class="fas fa-spinner fa-spin" style="color:var(--primary);margin-right:5px;font-size:10px"></i>Lofi Hip Hop Radio — Beats to Relax/Study</div>
+            <div class="q-bar"><div class="q-fill" style="width:62%"></div></div>
+            <div class="q-footer">
+              <span class="q-meta"><i class="fas fa-download" style="color:var(--primary)"></i> 62% · 3.2 Mo/s</span>
+              <div class="q-actions">
+                <span class="q-act" style="padding:3px 6px;border:1px solid var(--border);border-radius:3px;font-size:10px;cursor:pointer" title="Pause"><i class="fas fa-pause"></i></span>
+                <span class="q-act" style="padding:3px 6px;border:1px solid var(--border);border-radius:3px;font-size:10px;cursor:pointer;color:var(--error)" title="Annuler"><i class="fas fa-ban"></i></span>
+              </div>
+            </div>
+          </div>
+          <!-- Item 2 - paused (en pause) -->
+          <div class="q-item paused" style="opacity:0.8;border-color:var(--text-secondary)">
+            <div class="q-title"><i class="fas fa-pause" style="color:var(--text-secondary);margin-right:5px;font-size:10px"></i>Comment j'ai appris à coder en 2026</div>
+            <div class="q-bar"><div class="q-fill" style="width:0%;background:var(--text-secondary)"></div></div>
+            <div class="q-footer">
+              <span class="q-meta"><i class="fas fa-pause"></i> En pause</span>
+              <div class="q-actions">
+                <span class="q-act" style="padding:3px 6px;border:1px solid var(--border);border-radius:3px;font-size:10px;cursor:pointer;color:var(--success)" title="Démarrer"><i class="fas fa-play"></i></span>
+                <span class="q-act" style="padding:3px 6px;border:1px solid var(--border);border-radius:3px;font-size:10px;cursor:pointer;color:var(--error)" title="Supprimer"><i class="fas fa-trash"></i></span>
+              </div>
+            </div>
+          </div>
+          <!-- Item 3 - finished -->
+          <div class="q-item finished">
+            <div class="q-title"><i class="fas fa-check-circle" style="color:var(--success);margin-right:5px;font-size:10px"></i>Mac DeMarco — Chamber of Reflection</div>
+            <div class="q-bar"><div class="q-fill" style="width:100%"></div></div>
+            <div class="q-footer">
+              <span class="q-meta"><i class="fas fa-circle-check" style="color:var(--success)"></i> Terminé</span>
+              <div class="q-actions">
+                <span class="q-act" style="padding:3px 6px;border:1px solid var(--border);border-radius:3px;font-size:10px;cursor:pointer;color:var(--error)" title="Supprimer"><i class="fas fa-trash"></i></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Toast -->
+        <div class="toast-wrap">
+          <i class="fas fa-circle-check" style="color:var(--success);font-size:14px"></i>
+          Mac DeMarco téléchargée avec succès
+        </div>
+      </div>
+    </div>
+
+    <!-- Theme label -->
+    <div style="position:absolute;bottom:-28px;left:50%;transform:translateX(-50%);font-size:12px;color:#999;white-space:nowrap">
+      <i class="fas fa-palette"></i> Thème Mocha — tons chauds beige/marron
+    </div>
+  </div>
+</div>
+
+<!-- ===== THEME NORD ===== -->
+<div class="mockup theme-nord">
+  <div class="topbar">
+    <div class="topbar-left">
+      <i class="fas fa-download" style="color:var(--primary)"></i>
+      <h3>YT Downloader</h3>
+    </div>
+    <div class="topbar-right">
+      <span style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:4px">
+        <i class="fas fa-circle" style="font-size:7px;color:#c45a5a"></i> Déconnecté
+      </span>
+      <button class="topbar-btn"><i class="fas fa-palette"></i></button>
+      <button class="topbar-btn">
+        <i class="fas fa-list"></i>
+        <span class="count" style="display:none">0</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="content" style="position:relative">
+    <div class="search-wrap">
+      <div class="input-ic">
+        <i class="fas fa-search"></i>
+        <input type="text" value="" placeholder="Rechercher une vidéo ou coller une URL...">
+      </div>
+      <button><i class="fas fa-magnifying-glass"></i> Rechercher</button>
+    </div>
+
+    <div class="folder-row">
+      <i class="fas fa-folder-open"></i>
+      <span class="path">~/Downloads/YoutubeDownloader</span>
+      <button class="changer"><i class="fas fa-folder-plus"></i> Changer</button>
+    </div>
+
+    <!-- Offline state -->
+    <div style="text-align:center;padding:60px 20px;color:var(--text-secondary)">
+      <i class="fas fa-wifi-slash" style="font-size:48px;color:var(--error);margin-bottom:16px;display:block"></i>
+      <p style="font-size:16px;font-weight:600;color:var(--text)">Aucune connexion internet</p>
+      <p style="font-size:13px;margin-top:4px">Connectez-vous à internet pour rechercher et télécharger des vidéos</p>
+    </div>
+
+    <div style="position:absolute;bottom:-28px;left:50%;transform:translateX(-50%);font-size:12px;color:#999;white-space:nowrap">
+      <i class="fas fa-snowflake"></i> Thème Nord — tons froids bleu arctique
+    </div>
+  </div>
+</div>
+
+<!-- ANNOTATIONS -->
+<div style="width:100%;max-width:1100px;margin-top:10px">
+  <div class="annotation">
+    <strong><i class="fas fa-cubes"></i> Structure — 1 seul écran :</strong>
+    <ul>
+      <li><strong>Topbar</strong> — Logo + titre · Statut connexion (vert/rouge) · Bouton <i class="fas fa-palette"></i> thème · Bouton <i class="fas fa-list"></i> file d'attente (avec compteur)</li>
+      <li><strong>Barre recherche</strong> — Mots-clés ou URL YouTube/playlist</li>
+      <li><strong>Dossier</strong> — Chemin actuel + bouton "Changer" → sélecteur natif</li>
+      <li><strong>Résultats</strong> — Cartes horizontales : thumbnail + overlay play, badge durée, titre, chaîne, stats, boutons Télécharger + Aperçu</li>
+    </ul>
+  </div>
+  <div class="annotation" style="border-left-color:var(--primary)">
+    <strong><i class="fas fa-list"></i> Queue en overlay :</strong>
+    <ul>
+      <li>S'ouvre via le bouton <i class="fas fa-list"></i> dans la topbar</li>
+      <li>Se ferme via <i class="fas fa-xmark"></i> ou en cliquant en dehors</li>
+      <li>Barre de progression + vitesse en direct</li>
+      <li><strong>Pause / Reprendre / Annuler</strong> sur chaque élément :
+        <i class="fas fa-play"></i> démarrer un élément en pause,
+        <i class="fas fa-pause"></i> mettre en pause un téléchargement actif,
+        <i class="fas fa-ban"></i> annuler/supprimer</li>
+      <li>Nouveaux téléchargements mis en <strong>"pause"</strong> par défaut si 2 sont déjà actifs</li>
+      <li>Statuts : <i class="fas fa-spinner fa-spin"></i> en cours, <i class="fas fa-pause"></i> en pause, <i class="fas fa-hourglass-half"></i> en attente, <i class="fas fa-check-circle"></i> terminé, <i class="fas fa-circle-xmark"></i> erreur</li>
+    </ul>
+  </div>
+  <div class="annotation" style="border-left-color:#888">
+    <strong><i class="fas fa-wifi"></i> Mode hors-ligne :</strong>
+    <ul>
+      <li>L'interface s'affiche normalement même sans connexion</li>
+      <li>Statut "Déconnecté" dans la topbar (rond rouge)</li>
+      <li>Message explicite dans la zone résultats : "Aucune connexion internet"</li>
+      <li>Les fonctionnalités (recherche, téléchargement) sont simplement désactivées</li>
+    </ul>
+  </div>
+  <div class="annotation" style="border-left-color:#6b8f5e">
+    <strong><i class="fas fa-check-circle"></i> Fonctionnalités clés :</strong>
+    <ul>
+      <li><i class="fas fa-font-awesome"></i> <strong>Font Awesome local</strong> — chargé depuis les fichiers locaux du projet, fonctionne sans internet</li>
+      <li><i class="fas fa-pause"></i> <strong>Pause/Reprendre</strong> les téléchargements actifs (SIGSTOP/SIGCONT)</li>
+      <li><i class="fas fa-ban"></i> Annulation de téléchargement</li>
+      <li><i class="fas fa-play"></i> <strong>Lecteur intégré</strong> — aperçu vidéo dans une modale sans quitter l'app (embed YouTube)</li>
+      <li><i class="fas fa-folder-open"></i> Choix du dossier de destination natif</li>
+      <li><i class="fas fa-layer-group"></i> Max 2 téléchargements simultanés</li>
+    </ul>
+  </div>
+</div>
+
+</body>
+</html>

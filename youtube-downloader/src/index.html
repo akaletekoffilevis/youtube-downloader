@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="assets/fontawesome/css/all.min.css">
+<link rel="stylesheet" href="styles.css">
+<title>YouTube Downloader</title>
+<script type="module" src="/main.js" defer></script>
+</head>
+<body class="theme-mocha">
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <i class="fas fa-download"></i>
+      <h3>YT Downloader</h3>
+    </div>
+    <div class="topbar-right">
+      <span id="net-status" class="net-status">
+        <i class="fas fa-circle"></i> <span id="net-label">Vérification...</span>
+      </span>
+      <button id="theme-btn" class="topbar-btn" title="Changer le thème">
+        <i class="fas fa-palette"></i>
+      </button>
+      <button id="queue-toggle" class="topbar-btn queue-btn" title="File d'attente">
+        <i class="fas fa-list"></i>
+        <span id="queue-badge" class="queue-badge hidden">0</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="search-bar">
+    <div class="search-wrap">
+      <div class="input-ic">
+        <i class="fas fa-search"></i>
+        <input type="text" id="search-input" placeholder="Rechercher une vidéo ou coller une URL...">
+      </div>
+      <div class="search-actions">
+        <button id="view-toggle" class="view-toggle" title="Vue liste"><i class="fas fa-list"></i></button>
+        <button id="search-btn"><i class="fas fa-magnifying-glass"></i> Rechercher</button>
+      </div>
+    </div>
+
+    <div class="folder-row">
+      <i class="fas fa-folder-open"></i>
+      <span id="folder-path" class="path">~/Downloads/YoutubeDownloader</span>
+      <button id="folder-btn" class="changer"><i class="fas fa-folder-plus"></i> Changer</button>
+    </div>
+  </div>
+
+  <div id="results" class="results"></div>
+</div>
+
+<!-- Queue Overlay -->
+<div id="queue-overlay" class="queue-overlay hidden">
+  <div class="queue-panel">
+    <div class="queue-header">
+      <div class="queue-header-left">
+        <i class="fas fa-list-ol"></i> File d'attente
+        <span id="queue-count" class="queue-badge">0</span>
+      </div>
+      <button id="queue-close" class="queue-close"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div id="queue-list" class="queue-body"></div>
+  </div>
+</div>
+
+<!-- Preview Modal -->
+<div id="preview-modal" class="modal-overlay hidden">
+    <div class="modal-panel">
+    <div class="modal-header">
+      <span id="preview-title" class="modal-title">Aperçu vidéo</span>
+      <div style="display:flex;gap:6px">
+        <button id="preview-openbrowser" class="queue-close" title="Ouvrir dans le navigateur"><i class="fas fa-up-right-from-square"></i></button>
+        <button id="preview-close" class="queue-close"><i class="fas fa-xmark"></i></button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div id="preview-player" class="player-wrap">
+        <div class="player-placeholder">
+          <i class="fas fa-film"></i>
+          <p>Chargement du lecteur...</p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-resize-handle"><i class="fas fa-up-right-and-down-left-from-center"></i></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast hidden">
+  <i id="toast-icon" class="fas fa-circle-check"></i>
+  <span id="toast-msg"></span>
+</div>
+</body>
+</html>
