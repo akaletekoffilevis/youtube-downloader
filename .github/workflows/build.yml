@@ -17,13 +17,10 @@ jobs:
         include:
           - platform: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
-            artifact: Linux
           - platform: windows-latest
             target: x86_64-pc-windows-msvc
-            artifact: Windows
           - platform: macos-latest
             target: aarch64-apple-darwin
-            artifact: macOS
 
     runs-on: ${{ matrix.platform }}
 
@@ -44,7 +41,7 @@ jobs:
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
-          workspaces: src-tauri -> target
+          workspaces: youtube-downloader/src-tauri -> target
 
       - name: Install Linux dependencies
         if: matrix.platform == 'ubuntu-22.04'
@@ -54,12 +51,14 @@ jobs:
 
       - name: Install frontend dependencies
         run: npm install
+        working-directory: youtube-downloader
 
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          projectPath: youtube-downloader
           tagName: ${{ github.ref_name }}
           releaseName: 'YouTube Downloader ${{ github.ref_name }}'
           releaseBody: 'See the assets to download and install this version.'
