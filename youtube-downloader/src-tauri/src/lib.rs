@@ -26,6 +26,12 @@ fn find_ytdlp() -> PathBuf {
             return pb;
         }
     }
+    if let Ok(home) = std::env::var("HOME") {
+        let pb = PathBuf::from(format!("{}/.local/bin/yt-dlp", home));
+        if pb.exists() {
+            return pb;
+        }
+    }
     PathBuf::from("yt-dlp")
 }
 
@@ -41,6 +47,8 @@ pub struct VideoItem {
     pub thumbnail: String,
     pub author: String,
     pub duration: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub filesize: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -65,12 +73,35 @@ fn extract_video(json: &serde_json::Value) -> VideoItem {
         .or_else(|| json["uploader"].as_str())
         .unwrap_or("Inconnu")
         .to_string();
-    let thumbnail = format!("https://i.ytimg.com/vi/{}/hqdefault.jpg", id);
+    let thumbnail = if let Some(thumbs) = json["thumbnails"].as_array() {
+        thumbs.last()
+            .and_then(|t| t["url"].as_str())
+            .unwrap_or(&format!("https://i.ytimg.com/vi/{}/hqdefault.jpg", id))
+            .to_string()
+    } else {
+        format!("https://i.ytimg.com/vi/{}/hqdefault.jpg", id)
+    };
     let duration = match json["duration"].as_i64() {
-        Some(secs) => format!("{}:{:02}", secs / 60, secs % 60),
+        Some(secs) => {
+            let h = secs / 3600;
+            let m = (secs % 3600) / 60;
+            let s = secs % 60;
+            if h > 0 { format!("{}:{:02}:{:02}", h, m, s) }
+            else { format!("{}:{:02}", m, s) }
+        }
         None => "Live".to_string(),
     };
-    VideoItem { id, title, url, thumbnail, author, duration }
+    let filesize = json["filesize_approx"].as_i64().map(|bytes| format_size(bytes));
+    VideoItem { id, title, url, thumbnail, author, duration, filesize }
+}
+
+fn format_size(bytes: i64) -> String {
+    if bytes < 1024 { return format!("{} o", bytes); }
+    let kb = bytes as f64 / 1024.0;
+    if kb < 1024.0 { return format!("{:.0} Ko", kb); }
+    let mb = kb / 1024.0;
+    if mb < 1024.0 { return format!("{:.1} Mo", mb); }
+    format!("{:.2} Go", mb / 1024.0)
 }
 
 #[tauri::command]
@@ -78,8 +109,8 @@ async fn search_videos(query: String) -> Result<Vec<VideoItem>, String> {
     let yt = find_ytdlp();
     tokio::task::spawn_blocking(move || {
         let output = Command::new(yt)
-            .args(["--dump-json", "--no-download", "--ignore-errors", "--no-warnings",
-                &format!("ytsearch10:{}", query)])
+            .args(["--dump-json", "--flat-playlist", "--no-download", "--ignore-errors", "--no-warnings",
+                &format!("ytsearch100:{}", query)])
             .output()
             .map_err(|e| format!("yt-dlp introuvable: {}", e))?;
         if !output.status.success() {
@@ -116,6 +147,7 @@ async fn get_video_info(url: String) -> Result<VideoItem, String> {
                 url: url3, thumbnail: String::new(),
                 author: json["channel"].as_str().unwrap_or("").to_string(),
                 duration: format!("{} vidéos", entries.len()),
+                filesize: None,
             });
         }
         Ok(extract_video(&json))
@@ -150,7 +182,7 @@ fn get_download_dir() -> String {
 
 #[tauri::command]
 async fn download_video(
-    app: AppHandle, id: String, url: String, output_dir: String,
+    app: AppHandle, id: String, url: String, output_dir: String, format: String,
 ) -> Result<(), String> {
     std::fs::create_dir_all(&output_dir).map_err(|e| format!("Dossier impossible: {}", e))?;
     let output_template = format!("{}/%(title)s.%(ext)s", output_dir);
@@ -167,11 +199,25 @@ async fn download_video(
             "--progress-template".into(),
             "progress:%(progress.percent)s|%(progress.speed)s|%(progress.eta)s".into(),
         ];
+        match format.as_str() {
+            "audio" => {
+                args.push("--extract-audio".into());
+                args.push("--audio-format".into());
+                args.push("mp3".into());
+                args.push("--audio-quality".into());
+                args.push("0".into());
+            }
+            "1080" => { args.push("-f".into()); args.push("bestvideo[height<=1080]+bestaudio/best[height<=1080]".into()); }
+            "720" => { args.push("-f".into()); args.push("bestvideo[height<=720]+bestaudio/best[height<=720]".into()); }
+            "480" => { args.push("-f".into()); args.push("bestvideo[height<=480]+bestaudio/best[height<=480]".into()); }
+            "360" => { args.push("-f".into()); args.push("bestvideo[height<=360]+bestaudio/best[height<=360]".into()); }
+            _ => {}
+        }
         if !is_playlist { args.push("--no-playlist".into()); }
         args.push(url2.clone());
 
         let mut child = match Command::new(find_ytdlp()).args(&args)
-            .stdout(Stdio::null()).stderr(Stdio::piped()).spawn()
+            .stdout(Stdio::piped()).stderr(Stdio::piped()).spawn()
         {
             Ok(c) => c,
             Err(e) => {
@@ -185,18 +231,18 @@ async fn download_video(
 
         let pid_str = id2.clone();
 
-        // Take stderr before storing child (to avoid borrow issues)
+        let stdout = child.stdout.take();
         let stderr = child.stderr.take();
-        // Store child so pause/resume/cancel can find it
         { let mut p = processes.lock().unwrap(); p.insert(pid_str.clone(), child); }
 
-        // Read stderr line by line to avoid deadlock and parse progress
-        if let Some(stderr) = stderr {
-            let reader = BufReader::new(stderr);
+        // Read stdout for progress-template output
+        if let Some(stdout) = stdout {
+            let reader = BufReader::new(stdout);
             for line in reader.lines() {
                 if let Ok(line) = line {
-                    if line.starts_with("progress:") {
-                        let data: Vec<&str> = line[9..].split('|').collect();
+                    let trimmed = line.trim();
+                    if trimmed.starts_with("progress:") {
+                        let data: Vec<&str> = trimmed[9..].split('|').collect();
                         let percent: f64 = data.first().and_then(|s| s.parse().ok()).unwrap_or(0.0);
                         app2.emit("download-progress", ProgressPayload {
                             id: id2.clone(), percent, status: "downloading".into(),
@@ -205,6 +251,14 @@ async fn download_video(
                     }
                 }
             }
+        }
+
+        // Drain stderr in a thread to avoid deadlock
+        if let Some(stderr) = stderr {
+            std::thread::spawn(move || {
+                let reader = BufReader::new(stderr);
+                for _ in reader.lines() {}
+            });
         }
 
         let mut child = { let mut p = processes.lock().unwrap(); p.remove(&pid_str) };
@@ -295,6 +349,46 @@ fn open_in_browser(url: String) -> Result<(), String> {
     opener::open(&url).map_err(|e| format!("Impossible d'ouvrir le navigateur: {}", e))
 }
 
+#[tauri::command]
+fn check_dir_exists(path: String) -> bool {
+    std::path::Path::new(&path).is_dir()
+}
+
+#[tauri::command]
+async fn get_file_size(url: String, format: String) -> Result<String, String> {
+    let yt = find_ytdlp();
+    let fmt = format.clone();
+    tokio::task::spawn_blocking(move || {
+        let mut args: Vec<String> = vec![
+            "--dump-json".into(), "--no-download".into(), "--no-warnings".into(),
+        ];
+        match fmt.as_str() {
+            "audio" => {
+                args.push("--extract-audio".into());
+                args.push("--audio-format".into());
+                args.push("mp3".into());
+            }
+            "1080" => { args.push("-f".into()); args.push("bestvideo[height<=1080]+bestaudio/best[height<=1080]".into()); }
+            "720" => { args.push("-f".into()); args.push("bestvideo[height<=720]+bestaudio/best[height<=720]".into()); }
+            "480" => { args.push("-f".into()); args.push("bestvideo[height<=480]+bestaudio/best[height<=480]".into()); }
+            "360" => { args.push("-f".into()); args.push("bestvideo[height<=360]+bestaudio/best[height<=360]".into()); }
+            _ => {}
+        }
+        args.push(url);
+        let output = Command::new(yt).args(&args).output()
+            .map_err(|e| format!("yt-dlp introuvable: {}", e))?;
+        if !output.status.success() {
+            return Err(clean_ytdlp_err(&String::from_utf8_lossy(&output.stderr)));
+        }
+        let json: serde_json::Value = serde_json::from_str(&String::from_utf8_lossy(&output.stdout))
+            .map_err(|e| format!("JSON: {}", e))?;
+        let bytes = json["filesize_approx"].as_i64()
+            .or_else(|| json["filesize"].as_i64())
+            .unwrap_or(0);
+        Ok(format_size(bytes))
+    }).await.map_err(|e| e.to_string())?
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -304,7 +398,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             search_videos, get_video_info, get_playlist, get_download_dir,
             download_video, pause_download, resume_download, cancel_download,
-            check_network, pick_folder, open_in_browser,
+            check_network, pick_folder, open_in_browser, check_dir_exists,
+            get_file_size,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
