@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="assets/fontawesome/css/all.min.css">
+<link rel="stylesheet" href="styles.css">
+<title>YouTube Downloader</title>
+<script src="mock.js"></script>
+<script src="i18n.js"></script>
+<script src="main.js" defer></script>
+</head>
+<body class="theme-light">
+
+<!-- SPLASH SCREEN -->
+<div id="splash" class="splash">
+  <div class="splash-inner">
+    <div class="splash-logo-wrap">
+      <div class="splash-logo-ring"></div>
+      <svg class="splash-logo" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="sbg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#6366f1"/>
+            <stop offset="100%" stop-color="#818cf8"/>
+          </linearGradient>
+        </defs>
+        <circle cx="256" cy="256" r="240" fill="url(#sbg)"/>
+        <circle cx="256" cy="256" r="200" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="3"/>
+        <path d="M256 190 L256 310" stroke="#fff" stroke-width="28" stroke-linecap="round"/>
+        <path d="M210 275 L256 320 L302 275" stroke="#fff" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <path d="M190 340 L322 340" stroke="rgba(255,255,255,0.7)" stroke-width="24" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="splash-text">YT Downloader</div>
+    <div class="splash-sub">Chargement...</div>
+  </div>
+</div>
+
+<div id="app" class="app-hidden">
+  <div class="topbar">
+    <div class="topbar-left">
+      <i class="fas fa-download"></i>
+      <h3>YT Downloader</h3>
+    </div>
+    <div class="topbar-right">
+      <span id="net-status" class="net-status">
+        <i class="fas fa-circle"></i> <span id="net-label">Vérification...</span>
+      </span>
+      <button id="lang-btn" class="topbar-btn lang-btn" title="Changer la langue">
+        <span id="lang-label" style="font-size:12px;font-weight:700">FR</span>
+      </button>
+      <button id="contact-btn" class="topbar-btn" title="Contacter le support">
+        <i class="fas fa-envelope"></i>
+      </button>
+      <button id="theme-btn" class="topbar-btn" title="Changer le thème">
+        <i class="fas fa-palette"></i>
+      </button>
+      <button id="queue-toggle" class="topbar-btn queue-btn" title="File d'attente">
+        <i class="fas fa-list"></i>
+        <span id="queue-badge" class="queue-badge hidden">0</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="search-bar">
+    <div class="search-wrap">
+      <div class="input-ic">
+        <i class="fas fa-search"></i>
+        <input type="text" id="search-input" placeholder="Rechercher une vidéo ou coller une URL...">
+      </div>
+      <div class="search-actions">
+        <button id="view-toggle" class="view-toggle" title="Vue liste"><i class="fas fa-list"></i></button>
+        <button id="search-btn"><i class="fas fa-magnifying-glass"></i> Rechercher</button>
+      </div>
+    </div>
+
+    <div class="folder-row">
+      <i class="fas fa-folder-open"></i>
+      <span id="folder-path" class="path">~/Downloads/YoutubeDownloader</span>
+      <button id="folder-btn" class="changer"><i class="fas fa-folder-plus"></i> Changer</button>
+      <div class="format-select">
+        <i class="fas fa-sliders"></i>
+        <select id="format-select">
+          <option value="best">Meilleure qualité</option>
+          <option value="1080">1080p</option>
+          <option value="720">720p</option>
+          <option value="480">480p</option>
+          <option value="360">360p</option>
+          <option value="audio">Audio uniquement (MP3)</option>
+        </select>
+      </div>
+      <div class="dl-limit-select">
+        <i class="fas fa-layer-group"></i>
+        <select id="dl-limit-select">
+          <option value="1">1 dl simultané</option>
+          <option value="2">2 dl simultanés</option>
+          <option value="3">3 dl simultanés</option>
+          <option value="4">4 dl simultanés</option>
+          <option value="5">5 dl simultanés</option>
+        </select>
+      </div>
+      <div class="sort-select" id="sort-wrap" style="display:none">
+        <i class="fas fa-arrow-down-wide-short"></i>
+        <select id="sort-select">
+          <option value="relevance">Trier par pertinence</option>
+          <option value="title">Trier par nom</option>
+          <option value="duration">Trier par durée</option>
+          <option value="filesize">Trier par taille</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div id="results-scroll" class="results-scroll">
+    <div id="results" class="results"></div>
+    <div id="pagination" class="pagination"></div>
+  </div>
+
+  <div class="app-footer">
+    <span class="version">v0.2.0</span>
+    <span>|</span>
+    <span>YouTube Downloader</span>
+    <span>|</span>
+      <a href="https://github.com/akaletekoffilevis/youtube-downloader" id="github-link" class="footer-link" target="_blank" rel="noopener"><i class="fab fa-github"></i> GitHub</a>
+    <span>|</span>
+    <span>&copy; 2026 Koffi Levis Akalete</span>
+    <span>|</span>
+    <span>All Rights Reserved</span>
+  </div>
+</div>
+
+<!-- Queue Overlay -->
+<div id="queue-overlay" class="queue-overlay hidden">
+  <div class="queue-panel">
+    <div class="queue-header">
+      <div class="queue-header-left">
+        <i class="fas fa-list-ol"></i> File d'attente
+        <span id="queue-count" class="queue-badge">0</span>
+      </div>
+      <button id="queue-close" class="queue-close"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div id="queue-list" class="queue-body"></div>
+  </div>
+</div>
+
+<!-- Preview Modal -->
+<div id="preview-modal" class="modal-overlay hidden">
+    <div class="modal-panel" id="modal-panel">
+    <div class="modal-header" id="modal-header">
+      <span id="preview-title" class="modal-title">Apercu video</span>
+      <div style="display:flex;gap:6px">
+        <button id="preview-openbrowser" class="queue-close" title="Ouvrir dans le navigateur"><i class="fas fa-up-right-from-square"></i></button>
+        <button id="preview-close" class="queue-close"><i class="fas fa-xmark"></i></button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div id="preview-player" class="player-wrap">
+        <div class="player-placeholder">
+          <i class="fas fa-film"></i>
+          <p>Chargement du lecteur...</p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-resize-handle" id="modal-resize"><i class="fas fa-up-right-and-down-left-from-center"></i></div>
+  </div>
+</div>
+
+<!-- Contact Modal -->
+<div id="contact-modal" class="contact-modal hidden">
+  <div class="contact-panel">
+    <div class="contact-header">
+      <h3><i class="fas fa-envelope"></i> Contacter le support</h3>
+      <button id="contact-close" class="queue-close"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="contact-body">
+      <input type="hidden" name="access_key" value="8a696bb5-2e4d-4ec4-b60e-89171c6c864e">
+      <input type="hidden" name="subject" value="[YT Downloader] Contact Support">
+      <input type="checkbox" name="botcheck" style="display:none">
+      <div class="contact-field">
+        <label for="contact-name">Nom</label>
+        <input type="text" id="contact-name" name="name" placeholder="Votre nom" required>
+      </div>
+      <div class="contact-field">
+        <label for="contact-email">Email</label>
+        <input type="email" id="contact-email" name="email" placeholder="Votre adresse email" required>
+      </div>
+      <div class="contact-field">
+        <label for="contact-subject">Sujet</label>
+        <select id="contact-subject" name="subject_choice">
+          <option value="bug">Bug / Problème technique</option>
+          <option value="suggestion">Suggestion / Amélioration</option>
+          <option value="feature">Nouvelle fonctionnalité</option>
+          <option value="other">Autre</option>
+        </select>
+      </div>
+      <div class="contact-field">
+        <label for="contact-message">Message</label>
+        <textarea id="contact-message" name="message" placeholder="Décrivez votre problème ou suggestion..." required></textarea>
+      </div>
+    </div>
+    <div class="contact-actions">
+      <button id="contact-cancel" class="contact-cancel">Annuler</button>
+      <button id="contact-send" class="contact-send"><i class="fas fa-paper-plane"></i> Envoyer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast hidden">
+  <i id="toast-icon" class="fas fa-circle-check"></i>
+  <span id="toast-msg"></span>
+</div>
+</body>
+</html>
