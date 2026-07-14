@@ -472,6 +472,8 @@ body.theme-dark select option {
   grid-template-columns: repeat(4, 1fr);
   gap: 14px;
   align-content: start;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 /* ===== CARDS ===== */
@@ -1655,12 +1657,12 @@ body.theme-dark .contact-field select option {
 
 /* ===== RESPONSIVE ===== */
 @media (min-width: 1200px) {
-  .results { grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .results { grid-template-columns: repeat(4, 1fr); gap: 14px; max-width: 1200px; margin: 0 auto; }
   .results.list-view { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (min-width: 1600px) {
-  .results { grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .results { grid-template-columns: repeat(4, 1fr); gap: 16px; max-width: 1400px; margin: 0 auto; }
   .results.list-view { grid-template-columns: repeat(2, 1fr); }
 }
 
