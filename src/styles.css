@@ -357,6 +357,35 @@ body {
 
 .input-ic input::placeholder { color: var(--text-tertiary); }
 
+/* ===== SELECTS — GLOBAL ===== */
+select {
+  padding: 5px 28px 5px 10px;
+  background-color: var(--card-bg);
+  border: 0.5px solid var(--border-strong);
+  border-radius: var(--radius-xs);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: all var(--transition-fast);
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='4'%3E%3Cpath d='M0 0l3 4 3-4z' fill='%238e8e93'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+body.theme-dark select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='4'%3E%3Cpath d='M0 0l3 4 3-4z' fill='%2398989d'/%3E%3C/svg%3E");
+}
+select:hover { border-color: var(--primary); }
+select:focus { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-glow); }
+select option {
+  background: var(--surface-solid);
+  color: var(--text);
+}
+
 /* ===== FOLDER ROW ===== */
 .folder-row {
   display: flex;
@@ -408,54 +437,20 @@ body {
 
 .folder-row .changer:active { transform: scale(0.95); }
 
-.format-select, .dl-limit-select, .sort-select {
+.format-select, .sort-select {
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
-.format-select i, .dl-limit-select i, .sort-select i {
+.format-select i, .sort-select i {
   font-size: 11px;
   color: var(--text-tertiary);
 }
 
-.format-select select, .dl-limit-select select, .sort-select select {
+.format-select select, .sort-select select {
   padding: 4px 24px 4px 8px;
-  background: var(--surface) !important;
-  border: 0.5px solid var(--border);
-  border-radius: 6px;
-  color: var(--text) !important;
   font-size: 11px;
-  font-weight: 500;
-  cursor: pointer;
-  outline: none;
-  transition: all var(--transition-fast);
-  -webkit-appearance: none !important;
-  -moz-appearance: none !important;
-  appearance: none !important;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='4'%3E%3Cpath d='M0 0l3 4 3-4z' fill='%238e8e93'/%3E%3C/svg%3E") !important;
-  background-repeat: no-repeat !important;
-  background-position: right 8px center !important;
-}
-
-.format-select select:hover, .dl-limit-select select:hover, .sort-select select:hover {
-  border-color: var(--primary);
-}
-
-.format-select select:focus, .dl-limit-select select:focus, .sort-select select:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 2px var(--primary-glow);
-}
-
-body.theme-dark .format-select select,
-body.theme-dark .dl-limit-select select,
-body.theme-dark .sort-select select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='4'%3E%3Cpath d='M0 0l3 4 3-4z' fill='%2398989d'/%3E%3C/svg%3E") !important;
-}
-
-body.theme-dark select option {
-  background: var(--surface-solid) !important;
-  color: var(--text) !important;
 }
 
 /* ===== RESULTS ===== */
@@ -648,28 +643,6 @@ body.theme-dark select option {
   box-shadow: none;
 }
 
-.card .preview-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  background: transparent;
-  border: 0.5px solid var(--border);
-  border-radius: var(--radius-xs);
-  color: var(--text-secondary);
-  cursor: pointer;
-  font-size: 12px;
-  transition: all var(--transition-fast);
-}
-
-.card .preview-btn:hover {
-  background: var(--primary);
-  color: #fff;
-  border-color: var(--primary);
-}
-
-.card .preview-btn:active { transform: scale(0.9); }
-
 /* Card progress overlay */
 .card-progress {
   position: absolute;
@@ -764,7 +737,6 @@ body.theme-dark select option {
 .results.list-view .card .meta-row { margin-bottom: 0; }
 .results.list-view .card .actions { margin-top: 4px; }
 .results.list-view .card .dl-btn { padding: 6px 14px; font-size: 11px; }
-.results.list-view .card .preview-btn { width: 30px; }
 .results.list-view .card .play-hover { opacity: 0; pointer-events: none; }
 .results.list-view .card .badge { font-size: 9px; padding: 2px 5px; bottom: 3px; right: 3px; }
 .results.list-view .card:hover { transform: translateY(-1px); }
@@ -1228,8 +1200,8 @@ body.theme-dark select option {
 }
 .player-spinner p { font-size: 12px; font-weight: 500; }
 
-/* ===== CONTACT MODAL ===== */
-.contact-modal {
+/* ===== MODAL (FORM) ===== */
+.modal-overlay {
   position: fixed;
   inset: 0;
   background: var(--overlay);
@@ -1241,9 +1213,9 @@ body.theme-dark select option {
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
-.contact-modal.hidden { display: none; }
+.modal-overlay.hidden { display: none; }
 
-.contact-panel {
+.modal-panel {
   width: 440px;
   max-width: 95vw;
   max-height: 85vh;
@@ -1257,37 +1229,7 @@ body.theme-dark select option {
   flex-direction: column;
 }
 
-.contact-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 18px;
-  border-bottom: 0.5px solid var(--border);
-  background: var(--surface);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-.contact-header h3 {
-  font-size: 14px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  color: var(--text);
-}
-
-.contact-header h3 i { color: var(--primary); }
-
-.contact-body {
-  padding: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  overflow-y: auto;
-}
-
-.contact-field label {
+.modal-field label {
   display: block;
   font-size: 12px;
   font-weight: 600;
@@ -1295,9 +1237,9 @@ body.theme-dark select option {
   margin-bottom: 5px;
 }
 
-.contact-field input,
-.contact-field select,
-.contact-field textarea {
+.modal-field input,
+.modal-field select,
+.modal-field textarea {
   width: 100%;
   padding: 9px 12px;
   background: var(--card-bg);
@@ -1310,38 +1252,26 @@ body.theme-dark select option {
   transition: all var(--transition);
 }
 
-.contact-field input:focus,
-.contact-field select:focus,
-.contact-field textarea:focus {
+.modal-field input:focus,
+.modal-field select:focus,
+.modal-field textarea:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px var(--primary-glow);
 }
 
-body.theme-dark .contact-field select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='4'%3E%3Cpath d='M0 0l3 4 3-4z' fill='%2398989d'/%3E%3C/svg%3E") !important;
-  background-repeat: no-repeat !important;
-  background-position: right 10px center !important;
-  padding-right: 28px !important;
-}
-
-body.theme-dark .contact-field select option {
-  background: var(--surface-solid) !important;
-  color: var(--text) !important;
-}
-
-.contact-field textarea {
+.modal-field textarea {
   resize: vertical;
   min-height: 90px;
 }
 
-.contact-actions {
+.modal-actions {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
   padding: 0 18px 18px;
 }
 
-.contact-actions button {
+.modal-actions button {
   padding: 9px 20px;
   border: none;
   border-radius: var(--radius-xs);
@@ -1351,37 +1281,29 @@ body.theme-dark .contact-field select option {
   transition: all var(--transition-fast);
 }
 
-.contact-cancel {
+.modal-cancel {
   background: var(--surface);
   border: 0.5px solid var(--border) !important;
   color: var(--text-secondary);
 }
 
-.contact-cancel:hover {
+.modal-cancel:hover {
   background: var(--card-hover);
   color: var(--text);
 }
 
-.contact-send {
+.modal-confirm {
   background: var(--primary);
   color: #fff;
 }
 
-.contact-send:hover {
+.modal-confirm:hover {
   background: var(--primary-hover);
   transform: translateY(-0.5px);
   box-shadow: 0 4px 12px var(--primary-glow);
 }
 
-.contact-send:active { transform: scale(0.97); }
-
-/* ===== LANG BUTTON ===== */
-.lang-btn {
-  font-size: 11px !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.5px;
-  min-width: 32px;
-}
+.modal-confirm:active { transform: scale(0.97); }
 
 /* ===== PAGINATION ===== */
 .pagination {
@@ -1682,7 +1604,7 @@ body.theme-dark .contact-field select option {
   .queue-panel { width: 100%; }
   .modal-panel { width: 95vw; max-height: 85vh; }
   .folder-row { flex-wrap: wrap; }
-  .format-select, .dl-limit-select, .sort-select { margin-top: 4px; }
+  .format-select, .sort-select { margin-top: 4px; }
   .topbar { padding: 12px 16px; }
   .search-bar { padding: 12px 16px 0; }
   .pagination { padding: 12px 16px 20px; }

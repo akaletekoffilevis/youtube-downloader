@@ -8,14 +8,13 @@ try {
 }
 
 let searchInput, searchBtn, resultsEl, folderPath, folderBtn;
-let themeBtn, queueToggle, queueOverlay, queueClose, queueList, queueCount, queueBadge;
+let queueToggle, queueOverlay, queueClose, queueList, queueCount, queueBadge;
 let toast, toastMsg, toastIcon;
 let netStatus, netLabel;
 let previewModal, previewClose, previewTitle, previewPlayer;
 let viewToggle, isListView = false;
-let formatSelect, dlLimitSelect, sortSelect, sortWrap;
+let formatSelect, sortSelect, sortWrap;
 let paginationEl;
-let langBtn, langLabel;
 
 const queue = new Map();
 let activeDownloads = 0;
@@ -127,98 +126,13 @@ function saveSettings() {
 
   currentLang = lang;
   setLang(lang);
-  langLabel.textContent = lang.toUpperCase();
   applyLang();
 
   maxConcurrent = concurrency;
   localStorage.setItem('ytdl-max-dl', concurrency);
-  dlLimitSelect.value = concurrency;
 
   closeSettings();
   showToast(currentLang === 'fr' ? 'Paramètres sauvegardés' : 'Settings saved', 'success');
-}
-
-// ===== DOWNLOADS MANAGER =====
-function openDownloadsManager() {
-  const modal = document.getElementById('downloads-modal');
-  if (!modal) return;
-  renderDownloadsManager();
-  modal.classList.remove('hidden');
-}
-
-function closeDownloadsManager() {
-  document.getElementById('downloads-modal').classList.add('hidden');
-}
-
-function renderDownloadsManager() {
-  const list = document.getElementById('downloads-list');
-  if (!list) return;
-
-  const items = [...queue.values()];
-  if (!items.length) {
-    list.innerHTML = `<div class="history-empty"><i class="fas fa-arrow-down"></i><p>${currentLang === 'fr' ? 'Aucun téléchargement actif' : 'No active downloads'}</p><p class="sub">${currentLang === 'fr' ? 'Les téléchargements en cours apparaîtront ici' : 'Active downloads will appear here'}</p></div>`;
-    return;
-  }
-
-  list.innerHTML = items.map(item => {
-    let statusIcon, statusColor, statusText;
-    switch (item.status) {
-      case 'downloading':
-      case 'starting':
-        statusIcon = 'fa-spinner fa-spin';
-        statusColor = 'var(--primary)';
-        statusText = `${Math.round(item.percent)}% · ${t('downloading')}`;
-        break;
-      case 'waiting':
-        statusIcon = 'fa-hourglass-half';
-        statusColor = 'var(--text-secondary)';
-        statusText = t('waiting');
-        break;
-      case 'paused':
-        statusIcon = 'fa-pause';
-        statusColor = 'var(--warning)';
-        statusText = t('paused');
-        break;
-      case 'finished':
-        statusIcon = 'fa-circle-check';
-        statusColor = 'var(--success)';
-        statusText = t('finished');
-        break;
-      case 'error':
-        statusIcon = 'fa-circle-xmark';
-        statusColor = 'var(--error)';
-        statusText = t('error_label');
-        break;
-      default:
-        statusIcon = 'fa-hourglass-half';
-        statusColor = 'var(--text-secondary)';
-        statusText = t('waiting');
-    }
-
-    return `<div class="history-item">
-      <div class="history-icon" style="background:${statusColor}20;color:${statusColor}"><i class="fas ${statusIcon}"></i></div>
-      <div class="history-info">
-        <div class="history-title">${escHtml(item.title || 'Video')}</div>
-        <div class="history-meta">${statusText} · ${Math.round(item.percent)}%</div>
-      </div>
-      <div style="display:flex;gap:4px">
-        ${item.status === 'paused' || item.status === 'waiting' ? `<button class="history-delete" style="color:var(--success);background:var(--success-glow)" data-action="resume" data-url="${item.url}" title="${t('start')}"><i class="fas fa-play"></i></button>` : ''}
-        ${item.status === 'downloading' || item.status === 'starting' ? `<button class="history-delete" style="color:var(--warning);background:rgba(255,149,0,0.12)" data-action="pause" data-url="${item.url}" title="${t('paused')}"><i class="fas fa-pause"></i></button>` : ''}
-        <button class="history-delete" style="color:var(--error);background:var(--error-glow)" data-action="cancel" data-url="${item.url}" title="${t('remove')}"><i class="fas fa-trash"></i></button>
-      </div>
-    </div>`;
-  }).join('');
-
-  list.querySelectorAll('[data-action]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const action = btn.dataset.action;
-      const url = btn.dataset.url;
-      if (action === 'cancel') removeFromQueue(url);
-      else if (action === 'resume') resumeItem(url);
-      else if (action === 'pause') pauseItem(url);
-      renderDownloadsManager();
-    });
-  });
 }
 
 function $(sel) { return document.querySelector(sel); }
@@ -229,7 +143,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   resultsEl = $('#results');
   folderPath = $('#folder-path');
   folderBtn = $('#folder-btn');
-  themeBtn = $('#theme-btn');
   queueToggle = $('#queue-toggle');
   queueOverlay = $('#queue-overlay');
   queueClose = $('#queue-close');
@@ -245,8 +158,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   previewClose = $('#preview-close');
   previewTitle = $('#preview-title');
   previewPlayer = $('#preview-player');
-  langBtn = $('#lang-btn');
-  langLabel = $('#lang-label');
   const previewOpenBrowser = $('#preview-openbrowser');
   previewOpenBrowser.addEventListener('click', () => {
     const vid = previewPlayer.dataset?.vid;
@@ -254,17 +165,13 @@ window.addEventListener('DOMContentLoaded', async () => {
   });
   viewToggle = $('#view-toggle');
   formatSelect = $('#format-select');
-  dlLimitSelect = $('#dl-limit-select');
   sortSelect = $('#sort-select');
   sortWrap = $('#sort-wrap');
   paginationEl = $('#pagination');
 
-  dlLimitSelect.value = maxConcurrent;
-
   if (currentTheme === 'dark') document.body.classList.add('theme-dark');
 
   setLang(currentLang);
-  langLabel.textContent = currentLang.toUpperCase();
   applyLang();
 
   try {
@@ -281,8 +188,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   searchBtn.addEventListener('click', handleSearch);
   searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') handleSearch(); });
   viewToggle.addEventListener('click', toggleView);
-  themeBtn.addEventListener('click', toggleTheme);
-  langBtn.addEventListener('click', toggleLang);
   queueToggle.addEventListener('click', () => openQueue());
   queueClose.addEventListener('click', closeQueue);
   queueOverlay.addEventListener('click', e => { if (e.target === queueOverlay) closeQueue(); });
@@ -324,19 +229,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (settingsSave) settingsSave.addEventListener('click', saveSettings);
   if (settingsModal) settingsModal.addEventListener('click', e => { if (e.target === settingsModal) closeSettings(); });
 
-  // Downloads Manager
-  const dlManagerBtn = $('#dl-manager-btn');
-  const dlManagerModal = $('#downloads-modal');
-  const dlManagerClose = $('#downloads-close');
-  if (dlManagerBtn) dlManagerBtn.addEventListener('click', openDownloadsManager);
-  if (dlManagerClose) dlManagerClose.addEventListener('click', closeDownloadsManager);
-  if (dlManagerModal) dlManagerModal.addEventListener('click', e => { if (e.target === dlManagerModal) closeDownloadsManager(); });
-
-  dlLimitSelect.addEventListener('change', () => {
-    maxConcurrent = parseInt(dlLimitSelect.value, 10);
-    localStorage.setItem('ytdl-max-dl', maxConcurrent);
-    processQueue();
-  });
   sortSelect.addEventListener('change', () => {
     currentSort = sortSelect.value;
     applySort();
@@ -353,7 +245,6 @@ window.addEventListener('DOMContentLoaded', async () => {
       closePreview();
       closeContact();
       closeSettings();
-      closeDownloadsManager();
       const hp = document.getElementById('history-panel');
       if (hp) hp.classList.add('hidden');
     }
@@ -494,20 +385,11 @@ function setupDragDrop() {
   });
 }
 
-// ===== LANGUAGE =====
-function toggleLang() {
-  currentLang = currentLang === 'fr' ? 'en' : 'fr';
-  setLang(currentLang);
-  langLabel.textContent = currentLang.toUpperCase();
-  applyLang();
-}
-
 function applyLang() {
   const netText = isOnline ? t('connected') : t('offline');
   if (netLabel) netLabel.textContent = netText;
   const contactBtn = $('#contact-btn');
   if (contactBtn) contactBtn.title = t('contact_support');
-  if (themeBtn) themeBtn.title = t('change_theme');
   if (queueToggle) queueToggle.title = t('toggle_queue');
 
   if (searchInput) searchInput.placeholder = t('search_placeholder');
@@ -531,16 +413,7 @@ function applyLang() {
     fmtOpts[5].text = t('audio_only');
   }
 
-  const dlOpts = dlLimitSelect ? dlLimitSelect.options : [];
-  if (dlOpts.length >= 5) {
-    dlOpts[0].text = t('dl_sim_1');
-    dlOpts[1].text = t('dl_sim_2');
-    dlOpts[2].text = t('dl_sim_3');
-    dlOpts[3].text = t('dl_sim_4');
-    dlOpts[4].text = t('dl_sim_5');
-  }
-
-  const contactTitle = $('.contact-header h3');
+  const contactTitle = $('.modal-header .modal-title');
   if (contactTitle) contactTitle.innerHTML = `<i class="fas fa-envelope"></i> ${t('contact_title')}`;
   const cLabels = { 'contact-name': 'contact_name', 'contact-email': 'contact_email', 'contact-subject': 'contact_subject', 'contact-message': 'contact_message' };
   for (const [id, key] of Object.entries(cLabels)) {
@@ -590,12 +463,6 @@ async function checkConnectivity() {
   else if (isOnline && queue.size === 0 && resultsEl.querySelector('.offline-state')) showEmpty();
 }
 
-function toggleTheme() {
-  currentTheme = currentTheme === 'light' ? 'dark' : 'light';
-  document.body.classList.toggle('theme-dark', currentTheme === 'dark');
-  localStorage.setItem('ytdl-theme', currentTheme);
-}
-
 // ===== CONTACT =====
 function openContact() { $('#contact-modal').classList.remove('hidden'); }
 function closeContact() { $('#contact-modal').classList.add('hidden'); }
@@ -615,17 +482,10 @@ async function sendContact() {
   sendBtn.disabled = true;
 
   try {
-    const formData = new FormData();
-    formData.append('access_key', '8a696bb5-2e4d-4ec4-b60e-89171c6c864e');
-    formData.append('name', name);
-    formData.append('email', email);
-    formData.append('subject', `[YT Downloader] ${subjectLabels[subject] || subject}`);
-    formData.append('message', message);
-    formData.append('botcheck', '');
-
-    const response = await fetch('https://api.web3forms.com/submit', {
+    const response = await fetch('https://yt-downloader-docs.vercel.app/api/contact', {
       method: 'POST',
-      body: formData
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, subject: subjectLabels[subject] || subject, message })
     });
     const data = await response.json();
 
@@ -931,14 +791,10 @@ function renderCards(items) {
           <button class="dl-btn" data-url="${item.url}" data-title="${escHtml(item.title)}">
             <i class="fas fa-circle-down"></i> ${t('download')}
           </button>
-          <button class="preview-btn" data-url="${item.url}" data-title="${escHtml(item.title)}" title="${t('preview')}">
-            <i class="fas fa-play"></i>
-          </button>
         </div>
       </div>`;
 
     card.querySelector('.play-hover').addEventListener('click', () => openPreview(item.url, item.title));
-    card.querySelector('.preview-btn').addEventListener('click', () => openPreview(item.url, item.title));
     card.querySelector('.dl-btn').addEventListener('click', e => addToQueue(item.url, item.title, e.currentTarget));
 
     resultsEl.appendChild(card);

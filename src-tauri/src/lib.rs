@@ -230,6 +230,16 @@ async fn download_video(
         };
         let mut child = match Command::new(yt).args(&args)
             .stdout(Stdio::piped()).stderr(Stdio::piped()).spawn()
+        {
+            Ok(c) => c,
+            Err(e) => {
+                app2.emit("download-progress", ProgressPayload {
+                    id: id2.clone(), percent: 0.0, status: "error".into(),
+                    filename: String::new(), error: format!("Impossible de lancer yt-dlp: {}", e),
+                }).ok();
+                return;
+            }
+        };
 
         let pid_str = id2.clone();
 
