@@ -27,6 +27,7 @@
 
 Application de bureau moderne et légère pour télécharger des vidéos YouTube. Construite avec **Tauri 2** (backend Rust + frontend HTML/CSS/JS), elle offre une expérience fluide, un design premium glassmorphism et un support bilingue FR/EN.
 
+> **Landing page :** [yt-downloader-docs.vercel.app](https://yt-downloader-docs.vercel.app)
 > **Auteur :** Koffi Levis Akalete · [koffilevis21@gmail.com](mailto:koffilevis21@gmail.com)
 
 ---
@@ -39,25 +40,34 @@ Application de bureau moderne et légère pour télécharger des vidéos YouTube
 - **Aperçu vidéo** avec lecteur YouTube intégré (modal redimensionnable/déplaçable)
 - **Tri** : pertinence, nom, durée, taille
 - **Vue carte** ou **vue liste**
+- **Auto-paste** : un lien collé lance automatiquement la recherche
 
 ### Téléchargement
 - **File d'attente** avec téléchargements simultanés (1 à 5 configurable)
+- **yt-dlp intégré** (sidecar) — aucune dépendance externe requise
 - **Choix de qualité** : Meilleure qualité, 1080p, 720p, 480p, 360p, Audio MP3
 - **Pause / Reprise / Annulation** de chaque téléchargement
 - **Barre de progression** en temps réel sur chaque carte
 - **Taille du fichier** affichée avant téléchargement
 
-### Interface
+### Interface iOS-like
 - **Design glassmorphism** premium avec backdrop-filter blur
-- **Deux thèmes** : Light (défaut) et Dark
-- **Bilingue FR/EN** avec switcher en un clic
-- **Pagination** (32 résultats par page)
-- **Sélecteur de dossier** natif
-- **Indicateur de connectivité** réseau en temps réel
+- **Dark mode true black** (#000) avec primary blue #007aff
+- **Spring animations** (cubic-bezier 0.175, 0.885, 0.32, 1.275)
+- **SF Pro font** system, 0.5px Apple-style borders
+- **Bilingue FR/EN** avec 80+ traductions
 - **Responsive** : 4 colonnes → 3 → 2 → 1 selon la taille
+- **Pagination** (32 résultats par page)
 
-### Support
-- **Formulaire de contact** intégré (Web3Forms)
+### Productivité
+- **Drag & Drop** : glisse un lien YouTube n'importe où dans l'app
+- **Historique** des téléchargements (localStorage, max 100)
+- **Paramètres** unifiés : thème, langue, concurrence, dossier
+- **Raccourcis clavier** : `Ctrl+K` focus search, `Esc` fermer modals
+
+### Contact & Support
+- **Formulaire de contact** intégré (envoi via Vercel SMTP)
+- **Page contact** sur le site landing
 - **Lien GitHub** pour les contributeurs
 
 ---
@@ -96,6 +106,9 @@ cd youtube-downloader
 
 # Installer les dépendances Node.js
 npm install
+
+# Télécharger yt-dlp sidecar (pour dev local)
+bash download-ytdlp.sh
 ```
 
 ---
@@ -118,8 +131,8 @@ npm run build
 | Raccourci | Action |
 |-----------|--------|
 | `Entrée` | Lancer la recherche |
+| `Ctrl+K` | Focus barre de recherche |
 | `Échap` | Fermer les modals/file d'attente |
-| `F5` | Recharger l'application |
 
 ---
 
@@ -154,6 +167,11 @@ npm run build
 # Nécessite un build macOS (cross-compilation non supportée)
 ```
 
+### CI/CD
+
+- **`build.yml`** — Déclenché par tag `v*`, build Linux/Windows/macOS avec yt-dlp sidecar, upload sur GitHub Releases
+- **`ci.yml`** — Déclenché par push sur `dev` ou PR vers `main`, build de vérification sans release
+
 ---
 
 ## Structure du Projet
@@ -162,9 +180,9 @@ npm run build
 youtube-downloader/
 ├── src/                          # Frontend (HTML/CSS/JS)
 │   ├── index.html                # Point d'entrée HTML
-│   ├── styles.css                # Styles CSS (glassmorphism, thèmes light/dark)
-│   ├── main.js                   # Logique applicative (recherche, téléchargement, UI)
-│   ├── i18n.js                   # Système de traduction FR/EN
+│   ├── styles.css                # Styles CSS (iOS-like, thèmes light/dark)
+│   ├── main.js                   # Logique applicative
+│   ├── i18n.js                   # Système de traduction FR/EN (80+ clés)
 │   ├── mock.js                   # Données simulées pour preview navigateur
 │   └── assets/
 │       └── fontawesome/          # Icônes Font Awesome 7
@@ -173,11 +191,16 @@ youtube-downloader/
 │   │   └── lib.rs                # Commands Tauri (search, download, network...)
 │   ├── Cargo.toml                # Dépendances Rust
 │   ├── tauri.conf.json           # Configuration Tauri (window, bundle, security)
+│   ├── binaries/                 # yt-dlp sidecar (gitignored)
 │   └── icons/                    # Icônes de l'application (PNG, ICO, ICNS)
 ├── docs/                         # Documentation & assets
 │   ├── logo.svg                  # Logo de l'application
 │   └── banner.svg                # Banner README
-├── package.json                  # Configuration npm (scripts: dev, build, preview)
+├── .github/workflows/
+│   ├── build.yml                 # CI/CD release (tag v*)
+│   └── ci.yml                    # CI check (dev/PR)
+├── download-ytdlp.sh             # Script pour télécharger yt-dlp en dev
+├── package.json                  # Configuration npm
 ├── .gitignore                    # Fichiers ignorés par Git
 └── README.md                     # Ce fichier
 ```
@@ -188,13 +211,13 @@ youtube-downloader/
 
 ### Frontend (`src/`)
 - **HTML5** — Structure sémantique
-- **CSS3** — Variables CSS, glassmorphism (`backdrop-filter`), animations, responsive grid
-- **JavaScript vanilla** — DOM manipulation, async/await, ES modules
+- **CSS3** — Variables CSS, glassmorphism, dark mode true black, spring animations, responsive grid
+- **JavaScript vanilla** — DOM manipulation, async/await, localStorage, drag & drop API
 - **Font Awesome 7** — Icônes
 
 ### Backend Rust (`src-tauri/`)
 - **Tauri 2** — Framework de bureau Rust
-- **yt-dlp** — Extraction et téléchargement YouTube (appelé via `std::process::Command`)
+- **yt-dlp** — Extraction et téléchargement YouTube (sidecar binaire)
 - **tokio** — Runtime async pour les opérations bloquantes
 - **serde** — Sérialisation/désérialisation JSON
 
@@ -223,7 +246,7 @@ Les communications entre le frontend et le backend utilisent le système d'**inv
 ### Thème
 Le thème est sauvegardé dans `localStorage` (`ytdl-theme`). Deux options :
 - **Light** (défaut) — Fond clair, glassmorphism blanc
-- **Dark** — Fond sombre, glassmorphism noir
+- **Dark** — Fond true black (#000), primary blue #0a84ff
 
 ### Langue
 La langue est sauvegardée dans `localStorage` (`ytdl-lang`). Deux options :
@@ -234,7 +257,40 @@ La langue est sauvegardée dans `localStorage` (`ytdl-lang`). Deux options :
 Le dossier est sauvegardé dans `localStorage` (`ytdl-dir`). Par défaut : `~/Downloads/YoutubeDownloader`.
 
 ### Téléchargements simultanés
-Configurable de 1 à 5, sauvegardé dans `localStorage` (`ytdl-max-dl`).
+Configurable de 1 à 5 via le modal Paramètres, sauvegardé dans `localStorage` (`ytdl-max-dl`).
+
+### Historique
+Sauvegardé dans `localStorage` (`ytdl-history`), max 100 entrées.
+
+---
+
+## Changelog
+
+### v0.2.0 — 14 Juillet 2026
+- **yt-dlp intégré** (sidecar) — aucune dépendance externe
+- **Refonte UI** : design iOS-like, dark mode true black, spring animations
+- **Drag & Drop** : glisser un lien YouTube pour lancer la recherche
+- **Historique** des téléchargements (localStorage)
+- **Paramètres unifiés** : thème, langue, concurrence, dossier
+- **Raccourcis clavier** : Ctrl+K, Esc
+- **Landing page** refondue avec Tailwind CSS (6 pages, FR/EN)
+- **Formulaire contact** via Vercel SMTP
+- **Liens de téléchargement** directs depuis GitHub Releases
+- **CI/CD** : build release Linux/Windows/macOS + CI check dev/PR
+- **Fix** deadlock progress: stdout drainé séparément
+- **Cleanup** : suppression des doublons UI (dl manager, topbar theme/lang, dl-limit)
+
+### v0.1.0 — 13 Juillet 2026
+- Première release publique
+- Recherche YouTube intégrée (ytsearch100)
+- Téléchargement avec barre de progression
+- File d'attente (1-5 simultanés)
+- Choix de qualité : 1080p, 720p, 480p, 360p, MP3
+- Thème clair & sombre (glassmorphism)
+- Interface bilingue FR/EN
+- Sélection de dossier natif
+- Contact support (Web3Forms)
+- Build Windows, Linux, macOS via GitHub Actions
 
 ---
 
@@ -263,7 +319,7 @@ On suit les [Conventional Commits](https://www.conventionalcommits.org/) :
 
 ### Signaler un bug
 
-Utilise le [formulaire de contact](https://github.com/akaletekoffilevis/youtube-downloader/issues) ou le formulaire intégré dans l'application.
+Utilise le [formulaire de contact](https://yt-downloader-docs.vercel.app/contact.html) ou le formulaire intégré dans l'application.
 
 ---
 
