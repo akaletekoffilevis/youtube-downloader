@@ -33,6 +33,194 @@ let currentPlaylistUrl = null;
 let currentSort = 'relevance';
 let currentQuery = '';
 
+// ===== HISTORY =====
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem('ytdl-history') || '[]'); } catch { return []; }
+}
+function saveHistory(item) {
+  const h = getHistory();
+  h.unshift({ title: item.title, url: item.url, author: item.author, date: new Date().toISOString() });
+  if (h.length > 100) h.length = 100;
+  localStorage.setItem('ytdl-history', JSON.stringify(h));
+}
+function clearHistory() {
+  localStorage.removeItem('ytdl-history');
+  renderHistory();
+}
+function removeFromHistory(url) {
+  const h = getHistory().filter(i => i.url !== url);
+  localStorage.setItem('ytdl-history', JSON.stringify(h));
+  renderHistory();
+}
+
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  if (!list) return;
+  const h = getHistory();
+  if (!h.length) {
+    list.innerHTML = `<div class="history-empty"><i class="fas fa-clock-rotate-left"></i><p>${t('history_empty')}</p><p class="sub">${t('history_empty_sub')}</p></div>`;
+    return;
+  }
+  list.innerHTML = h.map(item => {
+    const d = new Date(item.date);
+    const dateStr = d.toLocaleDateString(currentLang === 'fr' ? 'fr-FR' : 'en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+    return `<div class="history-item">
+      <div class="history-icon"><i class="fas fa-circle-play"></i></div>
+      <div class="history-info">
+        <div class="history-title">${escHtml(item.title || 'Video')}</div>
+        <div class="history-meta">${escHtml(item.author || '')} · ${dateStr}</div>
+      </div>
+      <button class="history-delete" data-url="${item.url}" title="${t('remove')}"><i class="fas fa-xmark"></i></button>
+    </div>`;
+  }).join('');
+
+  list.querySelectorAll('.history-delete').forEach(btn => {
+    btn.addEventListener('click', () => removeFromHistory(btn.dataset.url));
+  });
+}
+
+function toggleHistory() {
+  const panel = document.getElementById('history-panel');
+  if (!panel) return;
+  const isOpen = !panel.classList.contains('hidden');
+  if (isOpen) {
+    panel.classList.add('hidden');
+  } else {
+    renderHistory();
+    panel.classList.remove('hidden');
+  }
+}
+
+// ===== SETTINGS =====
+function getSettings() {
+  return {
+    theme: localStorage.getItem('ytdl-theme') || 'light',
+    lang: localStorage.getItem('ytdl-lang') || 'fr',
+    maxConcurrent: parseInt(localStorage.getItem('ytdl-max-dl') || '2', 10),
+    folder: localStorage.getItem('ytdl-dir') || ''
+  };
+}
+
+function openSettings() {
+  const modal = document.getElementById('settings-modal');
+  if (!modal) return;
+  const s = getSettings();
+  document.getElementById('settings-theme').value = s.theme;
+  document.getElementById('settings-lang').value = s.lang;
+  document.getElementById('settings-concurrency').value = s.maxConcurrent;
+  document.getElementById('settings-folder-display').textContent = s.folder || downloadDir || '~/Downloads/YoutubeDownloader';
+  modal.classList.remove('hidden');
+}
+
+function closeSettings() {
+  document.getElementById('settings-modal').classList.add('hidden');
+}
+
+function saveSettings() {
+  const theme = document.getElementById('settings-theme').value;
+  const lang = document.getElementById('settings-lang').value;
+  const concurrency = parseInt(document.getElementById('settings-concurrency').value, 10);
+
+  currentTheme = theme;
+  document.body.classList.toggle('theme-dark', theme === 'dark');
+  localStorage.setItem('ytdl-theme', theme);
+
+  currentLang = lang;
+  setLang(lang);
+  langLabel.textContent = lang.toUpperCase();
+  applyLang();
+
+  maxConcurrent = concurrency;
+  localStorage.setItem('ytdl-max-dl', concurrency);
+  dlLimitSelect.value = concurrency;
+
+  closeSettings();
+  showToast(currentLang === 'fr' ? 'Paramètres sauvegardés' : 'Settings saved', 'success');
+}
+
+// ===== DOWNLOADS MANAGER =====
+function openDownloadsManager() {
+  const modal = document.getElementById('downloads-modal');
+  if (!modal) return;
+  renderDownloadsManager();
+  modal.classList.remove('hidden');
+}
+
+function closeDownloadsManager() {
+  document.getElementById('downloads-modal').classList.add('hidden');
+}
+
+function renderDownloadsManager() {
+  const list = document.getElementById('downloads-list');
+  if (!list) return;
+
+  const items = [...queue.values()];
+  if (!items.length) {
+    list.innerHTML = `<div class="history-empty"><i class="fas fa-arrow-down"></i><p>${currentLang === 'fr' ? 'Aucun téléchargement actif' : 'No active downloads'}</p><p class="sub">${currentLang === 'fr' ? 'Les téléchargements en cours apparaîtront ici' : 'Active downloads will appear here'}</p></div>`;
+    return;
+  }
+
+  list.innerHTML = items.map(item => {
+    let statusIcon, statusColor, statusText;
+    switch (item.status) {
+      case 'downloading':
+      case 'starting':
+        statusIcon = 'fa-spinner fa-spin';
+        statusColor = 'var(--primary)';
+        statusText = `${Math.round(item.percent)}% · ${t('downloading')}`;
+        break;
+      case 'waiting':
+        statusIcon = 'fa-hourglass-half';
+        statusColor = 'var(--text-secondary)';
+        statusText = t('waiting');
+        break;
+      case 'paused':
+        statusIcon = 'fa-pause';
+        statusColor = 'var(--warning)';
+        statusText = t('paused');
+        break;
+      case 'finished':
+        statusIcon = 'fa-circle-check';
+        statusColor = 'var(--success)';
+        statusText = t('finished');
+        break;
+      case 'error':
+        statusIcon = 'fa-circle-xmark';
+        statusColor = 'var(--error)';
+        statusText = t('error_label');
+        break;
+      default:
+        statusIcon = 'fa-hourglass-half';
+        statusColor = 'var(--text-secondary)';
+        statusText = t('waiting');
+    }
+
+    return `<div class="history-item">
+      <div class="history-icon" style="background:${statusColor}20;color:${statusColor}"><i class="fas ${statusIcon}"></i></div>
+      <div class="history-info">
+        <div class="history-title">${escHtml(item.title || 'Video')}</div>
+        <div class="history-meta">${statusText} · ${Math.round(item.percent)}%</div>
+      </div>
+      <div style="display:flex;gap:4px">
+        ${item.status === 'paused' || item.status === 'waiting' ? `<button class="history-delete" style="color:var(--success);background:var(--success-glow)" data-action="resume" data-url="${item.url}" title="${t('start')}"><i class="fas fa-play"></i></button>` : ''}
+        ${item.status === 'downloading' || item.status === 'starting' ? `<button class="history-delete" style="color:var(--warning);background:rgba(255,149,0,0.12)" data-action="pause" data-url="${item.url}" title="${t('paused')}"><i class="fas fa-pause"></i></button>` : ''}
+        <button class="history-delete" style="color:var(--error);background:var(--error-glow)" data-action="cancel" data-url="${item.url}" title="${t('remove')}"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>`;
+  }).join('');
+
+  list.querySelectorAll('[data-action]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const action = btn.dataset.action;
+      const url = btn.dataset.url;
+      if (action === 'cancel') removeFromQueue(url);
+      else if (action === 'resume') resumeItem(url);
+      else if (action === 'pause') pauseItem(url);
+      renderDownloadsManager();
+    });
+  });
+}
+
 function $(sel) { return document.querySelector(sel); }
 
 window.addEventListener('DOMContentLoaded', async () => {
@@ -75,7 +263,6 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   if (currentTheme === 'dark') document.body.classList.add('theme-dark');
 
-  // Init language
   setLang(currentLang);
   langLabel.textContent = currentLang.toUpperCase();
   applyLang();
@@ -102,6 +289,8 @@ window.addEventListener('DOMContentLoaded', async () => {
   folderBtn.addEventListener('click', pickFolder);
   previewClose.addEventListener('click', closePreview);
   previewModal.addEventListener('click', e => { if (e.target === previewModal && !isInteracting) closePreview(); });
+
+  // Contact
   const contactBtn = $('#contact-btn');
   const contactModal = $('#contact-modal');
   const contactClose = $('#contact-close');
@@ -112,6 +301,37 @@ window.addEventListener('DOMContentLoaded', async () => {
   contactCancel.addEventListener('click', closeContact);
   contactSend.addEventListener('click', sendContact);
   contactModal.addEventListener('click', e => { if (e.target === contactModal) closeContact(); });
+
+  // History
+  const historyBtn = $('#history-btn');
+  const historyClose = $('#history-close');
+  const historyClear = $('#history-clear');
+  const historyPanel = $('#history-panel');
+  historyBtn.addEventListener('click', toggleHistory);
+  historyClose.addEventListener('click', () => document.getElementById('history-panel').classList.add('hidden'));
+  historyClear.addEventListener('click', clearHistory);
+  historyPanel.addEventListener('click', e => { if (e.target === historyPanel) historyPanel.classList.add('hidden'); });
+
+  // Settings
+  const settingsBtn = $('#settings-btn');
+  const settingsModal = $('#settings-modal');
+  const settingsClose = $('#settings-close');
+  const settingsSave = $('#settings-save');
+  const settingsCancel = $('#settings-cancel');
+  if (settingsBtn) settingsBtn.addEventListener('click', openSettings);
+  if (settingsClose) settingsClose.addEventListener('click', closeSettings);
+  if (settingsCancel) settingsCancel.addEventListener('click', closeSettings);
+  if (settingsSave) settingsSave.addEventListener('click', saveSettings);
+  if (settingsModal) settingsModal.addEventListener('click', e => { if (e.target === settingsModal) closeSettings(); });
+
+  // Downloads Manager
+  const dlManagerBtn = $('#dl-manager-btn');
+  const dlManagerModal = $('#downloads-modal');
+  const dlManagerClose = $('#downloads-close');
+  if (dlManagerBtn) dlManagerBtn.addEventListener('click', openDownloadsManager);
+  if (dlManagerClose) dlManagerClose.addEventListener('click', closeDownloadsManager);
+  if (dlManagerModal) dlManagerModal.addEventListener('click', e => { if (e.target === dlManagerModal) closeDownloadsManager(); });
+
   dlLimitSelect.addEventListener('change', () => {
     maxConcurrent = parseInt(dlLimitSelect.value, 10);
     localStorage.setItem('ytdl-max-dl', maxConcurrent);
@@ -125,10 +345,27 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   try { progressUnlisten = await listen('download-progress', onProgress); }
   catch {}
+
+  // Keyboard shortcuts
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { closeQueue(); closePreview(); closeContact(); }
-    if (e.key === 'F5') { window.location.reload(); }
+    if (e.key === 'Escape') {
+      closeQueue();
+      closePreview();
+      closeContact();
+      closeSettings();
+      closeDownloadsManager();
+      const hp = document.getElementById('history-panel');
+      if (hp) hp.classList.add('hidden');
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault();
+      searchInput.focus();
+      searchInput.select();
+    }
   });
+
+  // Drag & Drop
+  setupDragDrop();
 
   checkConnectivity();
   setInterval(checkConnectivity, 30000);
@@ -193,15 +430,69 @@ window.addEventListener('DOMContentLoaded', async () => {
     document.body.style.userSelect = '';
   });
 
-  // Splash screen: fade out after 2s
+  // Splash screen
   setTimeout(() => {
     const splash = document.getElementById('splash');
     const app = document.getElementById('app');
     if (splash) splash.classList.add('fade-out');
     if (app) app.classList.add('app-visible');
-    setTimeout(() => { if (splash) splash.remove(); }, 700);
-  }, 2000);
+    setTimeout(() => { if (splash) splash.remove(); }, 600);
+  }, 1500);
 });
+
+// ===== DRAG & DROP =====
+function setupDragDrop() {
+  const overlay = document.getElementById('drop-overlay');
+  if (!overlay) return;
+  let dragCounter = 0;
+
+  document.addEventListener('dragenter', e => {
+    e.preventDefault();
+    dragCounter++;
+    overlay.classList.remove('hidden');
+  });
+
+  document.addEventListener('dragleave', e => {
+    e.preventDefault();
+    dragCounter--;
+    if (dragCounter <= 0) {
+      dragCounter = 0;
+      overlay.classList.add('hidden');
+    }
+  });
+
+  document.addEventListener('dragover', e => {
+    e.preventDefault();
+  });
+
+  document.addEventListener('drop', e => {
+    e.preventDefault();
+    dragCounter = 0;
+    overlay.classList.add('hidden');
+
+    const text = e.dataTransfer.getData('text/plain') || e.dataTransfer.getData('text/uri-list');
+    if (text) {
+      const url = text.trim();
+      if (url.match(/(?:youtube\.com|youtu\.be)/i) || url.match(/^[a-zA-Z0-9_-]{11}$/)) {
+        searchInput.value = url;
+        handleSearch();
+        showToast(currentLang === 'fr' ? 'Lien détecté — recherche en cours...' : 'Link detected — searching...', 'success');
+      } else {
+        showToast(currentLang === 'fr' ? 'Lien non reconnu' : 'Unrecognized link', 'error');
+      }
+    }
+  });
+
+  // Paste support
+  searchInput.addEventListener('paste', e => {
+    setTimeout(() => {
+      const val = searchInput.value.trim();
+      if (val.match(/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)/i)) {
+        handleSearch();
+      }
+    }, 50);
+  });
+}
 
 // ===== LANGUAGE =====
 function toggleLang() {
@@ -212,7 +503,6 @@ function toggleLang() {
 }
 
 function applyLang() {
-  // Topbar
   const netText = isOnline ? t('connected') : t('offline');
   if (netLabel) netLabel.textContent = netText;
   const contactBtn = $('#contact-btn');
@@ -220,16 +510,13 @@ function applyLang() {
   if (themeBtn) themeBtn.title = t('change_theme');
   if (queueToggle) queueToggle.title = t('toggle_queue');
 
-  // Search
   if (searchInput) searchInput.placeholder = t('search_placeholder');
   if (searchBtn && !searchBtn.disabled) searchBtn.innerHTML = `<i class="fas fa-magnifying-glass"></i> ${t('search_btn')}`;
   if (viewToggle) viewToggle.title = isListView ? t('view_grid') : t('view_list');
 
-  // Folder row
   const folderBtnEl = $('#folder-btn');
   if (folderBtnEl) folderBtnEl.innerHTML = `<i class="fas fa-folder-plus"></i> ${t('change_folder')}`;
 
-  // Sort options
   const sortOpts = sortSelect ? sortSelect.options : [];
   if (sortOpts.length >= 4) {
     sortOpts[0].text = t('sort_relevance');
@@ -238,14 +525,12 @@ function applyLang() {
     sortOpts[3].text = t('sort_filesize');
   }
 
-  // Format options
   const fmtOpts = formatSelect ? formatSelect.options : [];
   if (fmtOpts.length >= 6) {
     fmtOpts[0].text = t('best_quality');
     fmtOpts[5].text = t('audio_only');
   }
 
-  // DL limit options
   const dlOpts = dlLimitSelect ? dlLimitSelect.options : [];
   if (dlOpts.length >= 5) {
     dlOpts[0].text = t('dl_sim_1');
@@ -255,7 +540,6 @@ function applyLang() {
     dlOpts[4].text = t('dl_sim_5');
   }
 
-  // Contact form
   const contactTitle = $('.contact-header h3');
   if (contactTitle) contactTitle.innerHTML = `<i class="fas fa-envelope"></i> ${t('contact_title')}`;
   const cLabels = { 'contact-name': 'contact_name', 'contact-email': 'contact_email', 'contact-subject': 'contact_subject', 'contact-message': 'contact_message' };
@@ -281,17 +565,14 @@ function applyLang() {
   const contactSendBtn = $('#contact-send');
   if (contactSendBtn) contactSendBtn.innerHTML = `<i class="fas fa-paper-plane"></i> ${t('contact_send')}`;
 
-  // Queue header
   const queueHeaderLeft = $('.queue-header-left');
   if (queueHeaderLeft) queueHeaderLeft.innerHTML = `<i class="fas fa-list-ol"></i> ${t('queue_title')} <span id="queue-count" class="queue-badge">${queue.size}</span>`;
 
-  // Footer
   const footer = $('.app-footer');
   if (footer) {
     footer.innerHTML = `<span class="version">v0.2.0</span> <span>|</span> <span>YouTube Downloader</span> <span>|</span> <a href="#" id="github-link" class="footer-link" target="_blank" rel="noopener"><i class="fab fa-github"></i> GitHub</a> <span>|</span> <span>&copy; 2026 Koffi Levis Akalete</span> <span>|</span> <span>${t('all_rights')}</span>`;
   }
 
-  // Re-render dynamic content
   if (allResults.length > 0) renderPage(currentPage);
   else if (resultsEl.querySelector('.empty-state') || resultsEl.querySelector('.offline-state')) {
     if (!isOnline && queue.size === 0) showOffline();
@@ -580,7 +861,6 @@ function renderPagination() {
   }
 
   let html = '';
-
   html += `<button class="pg-btn" data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>`;
 
   const maxVisible = 7;
@@ -605,7 +885,6 @@ function renderPagination() {
   }
 
   html += `<button class="pg-btn" data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
-
   html += `<span class="pg-info">${allResults.length} ${t('results_count')}</span>`;
 
   paginationEl.innerHTML = html;
@@ -712,6 +991,9 @@ function addToQueue(url, title, btn) {
   const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const item = { id, url, title, status: 'waiting', percent: 0 };
   queue.set(url, item);
+
+  saveHistory({ title, url, author: '' });
+
   updateQueueBadge();
   openQueue();
   updateQueueUI();
@@ -918,13 +1200,13 @@ function updateCardProgress(url, percent, status) {
     el.classList.remove('hidden');
     el.classList.add('finished');
     fill.style.width = '100%';
-    text.textContent = '✓ ' + t('finished');
+    text.textContent = '\u2713 ' + t('finished');
     setTimeout(() => el.classList.add('hidden'), 2500);
   } else if (status === 'error') {
     el.classList.remove('hidden');
     el.classList.add('error');
     fill.style.width = '0%';
-    text.textContent = '✗ ' + t('error_label');
+    text.textContent = '\u2717 ' + t('error_label');
     setTimeout(() => { el.classList.add('hidden'); el.classList.remove('error'); }, 3000);
   }
 }

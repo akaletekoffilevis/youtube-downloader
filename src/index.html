@@ -20,15 +20,15 @@
       <svg class="splash-logo" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="sbg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stop-color="#6366f1"/>
-            <stop offset="100%" stop-color="#818cf8"/>
+            <stop offset="0%" stop-color="#007aff"/>
+            <stop offset="100%" stop-color="#0a84ff"/>
           </linearGradient>
         </defs>
         <circle cx="256" cy="256" r="240" fill="url(#sbg)"/>
-        <circle cx="256" cy="256" r="200" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="3"/>
+        <circle cx="256" cy="256" r="200" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3"/>
         <path d="M256 190 L256 310" stroke="#fff" stroke-width="28" stroke-linecap="round"/>
         <path d="M210 275 L256 320 L302 275" stroke="#fff" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-        <path d="M190 340 L322 340" stroke="rgba(255,255,255,0.7)" stroke-width="24" stroke-linecap="round"/>
+        <path d="M190 340 L322 340" stroke="rgba(255,255,255,0.6)" stroke-width="24" stroke-linecap="round"/>
       </svg>
     </div>
     <div class="splash-text">YT Downloader</div>
@@ -46,11 +46,20 @@
       <span id="net-status" class="net-status">
         <i class="fas fa-circle"></i> <span id="net-label">Vérification...</span>
       </span>
+      <button id="history-btn" class="topbar-btn" title="Historique">
+        <i class="fas fa-clock-rotate-left"></i>
+      </button>
+      <button id="dl-manager-btn" class="topbar-btn" title="Gestionnaire de téléchargements">
+        <i class="fas fa-arrow-down"></i>
+      </button>
       <button id="lang-btn" class="topbar-btn lang-btn" title="Changer la langue">
-        <span id="lang-label" style="font-size:12px;font-weight:700">FR</span>
+        <span id="lang-label" style="font-size:11px;font-weight:700">FR</span>
       </button>
       <button id="contact-btn" class="topbar-btn" title="Contacter le support">
         <i class="fas fa-envelope"></i>
+      </button>
+      <button id="settings-btn" class="topbar-btn" title="Paramètres">
+        <i class="fas fa-gear"></i>
       </button>
       <button id="theme-btn" class="topbar-btn" title="Changer le thème">
         <i class="fas fa-palette"></i>
@@ -66,7 +75,7 @@
     <div class="search-wrap">
       <div class="input-ic">
         <i class="fas fa-search"></i>
-        <input type="text" id="search-input" placeholder="Rechercher une vidéo ou coller une URL...">
+        <input type="text" id="search-input" placeholder="Rechercher une vidéo ou coller une URL..." autocomplete="off" spellcheck="false">
       </div>
       <div class="search-actions">
         <button id="view-toggle" class="view-toggle" title="Vue liste"><i class="fas fa-list"></i></button>
@@ -121,12 +130,35 @@
     <span>|</span>
     <span>YouTube Downloader</span>
     <span>|</span>
-      <a href="https://github.com/akaletekoffilevis/youtube-downloader" id="github-link" class="footer-link" target="_blank" rel="noopener"><i class="fab fa-github"></i> GitHub</a>
+    <a href="https://github.com/akaletekoffilevis/youtube-downloader" id="github-link" class="footer-link" target="_blank" rel="noopener"><i class="fab fa-github"></i> GitHub</a>
     <span>|</span>
     <span>&copy; 2026 Koffi Levis Akalete</span>
     <span>|</span>
     <span>All Rights Reserved</span>
   </div>
+</div>
+
+<!-- Drag & Drop Overlay -->
+<div id="drop-overlay" class="drop-overlay hidden">
+  <div class="drop-content">
+    <i class="fas fa-cloud-arrow-down"></i>
+    <p data-fr="Déposez votre lien ici" data-en="Drop your link here">Déposez votre lien ici</p>
+    <p class="sub" data-fr="Coller un lien YouTube pour lancer le téléchargement" data-en="Paste a YouTube link to start downloading">Coller un lien YouTube pour lancer le téléchargement</p>
+  </div>
+</div>
+
+<!-- History Panel -->
+<div id="history-panel" class="history-panel hidden">
+  <div class="history-header">
+    <h3><i class="fas fa-clock-rotate-left"></i> <span data-fr="Historique" data-en="History">Historique</span></h3>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button id="history-clear" class="queue-close" title="Vider l'historique" style="font-size:11px;width:auto;padding:0 10px;height:24px;border-radius:6px;background:var(--error-glow);color:var(--error);font-weight:600">
+        <i class="fas fa-trash"></i> <span data-fr="Tout supprimer" data-en="Clear all">Tout supprimer</span>
+      </button>
+      <button id="history-close" class="queue-close"><i class="fas fa-xmark"></i></button>
+    </div>
+  </div>
+  <div id="history-list" class="history-body"></div>
 </div>
 
 <!-- Queue Overlay -->
@@ -145,10 +177,10 @@
 
 <!-- Preview Modal -->
 <div id="preview-modal" class="modal-overlay hidden">
-    <div class="modal-panel" id="modal-panel">
+  <div class="modal-panel" id="modal-panel">
     <div class="modal-header" id="modal-header">
       <span id="preview-title" class="modal-title">Apercu video</span>
-      <div style="display:flex;gap:6px">
+      <div style="display:flex;gap:4px">
         <button id="preview-openbrowser" class="queue-close" title="Ouvrir dans le navigateur"><i class="fas fa-up-right-from-square"></i></button>
         <button id="preview-close" class="queue-close"><i class="fas fa-xmark"></i></button>
       </div>
@@ -202,6 +234,63 @@
       <button id="contact-cancel" class="contact-cancel">Annuler</button>
       <button id="contact-send" class="contact-send"><i class="fas fa-paper-plane"></i> Envoyer</button>
     </div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div id="settings-modal" class="contact-modal hidden">
+  <div class="contact-panel">
+    <div class="contact-header">
+      <h3><i class="fas fa-gear"></i> Paramètres</h3>
+      <button id="settings-close" class="queue-close"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="contact-body">
+      <div class="contact-field">
+        <label>Thème</label>
+        <select id="settings-theme">
+          <option value="light">Clair</option>
+          <option value="dark">Sombre</option>
+        </select>
+      </div>
+      <div class="contact-field">
+        <label>Langue</label>
+        <select id="settings-lang">
+          <option value="fr">Français</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+      <div class="contact-field">
+        <label>Téléchargements simultanés</label>
+        <select id="settings-concurrency">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+        </select>
+      </div>
+      <div class="contact-field">
+        <label>Dossier de destination</label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span id="settings-folder-display" style="flex:1;font-family:monospace;font-size:11px;color:var(--text-secondary);padding:8px 12px;background:var(--card-bg);border:0.5px solid var(--border);border-radius:var(--radius-xs);overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+        </div>
+      </div>
+    </div>
+    <div class="contact-actions">
+      <button id="settings-cancel" class="contact-cancel">Annuler</button>
+      <button id="settings-save" class="contact-send"><i class="fas fa-check"></i> Sauvegarder</button>
+    </div>
+  </div>
+</div>
+
+<!-- Downloads Manager Modal -->
+<div id="downloads-modal" class="contact-modal hidden">
+  <div class="contact-panel" style="width:520px">
+    <div class="contact-header">
+      <h3><i class="fas fa-arrow-down"></i> Gestionnaire de téléchargements</h3>
+      <button id="downloads-close" class="queue-close"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div id="downloads-list" class="contact-body" style="max-height:60vh;overflow-y:auto;padding:12px"></div>
   </div>
 </div>
 

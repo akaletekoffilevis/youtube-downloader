@@ -108,6 +108,17 @@ const translations = {
 
     // Footer
     all_rights: 'All Rights Reserved',
+
+    // History
+    history_title: 'Historique',
+    history_clear: 'Tout supprimer',
+    history_empty: "Aucun téléchargement",
+    history_empty_sub: 'Les vidéos téléchargées apparaîtront ici',
+    history_downloaded: 'Téléchargé le',
+
+    // Drag & Drop
+    drop_title: 'Déposez votre lien ici',
+    drop_sub: 'Collez un lien YouTube pour lancer le téléchargement',
   },
 
   en: {
@@ -219,6 +230,17 @@ const translations = {
 
     // Footer
     all_rights: 'All Rights Reserved',
+
+    // History
+    history_title: 'History',
+    history_clear: 'Clear all',
+    history_empty: 'No downloads yet',
+    history_empty_sub: 'Downloaded videos will appear here',
+    history_downloaded: 'Downloaded on',
+
+    // Drag & Drop
+    drop_title: 'Drop your link here',
+    drop_sub: 'Paste a YouTube link to start downloading',
   }
 };
 
