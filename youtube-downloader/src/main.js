@@ -193,14 +193,14 @@ window.addEventListener('DOMContentLoaded', async () => {
     document.body.style.userSelect = '';
   });
 
-  // Splash screen: fade out after 2s
+  // Splash screen: fade out after 800ms
   setTimeout(() => {
     const splash = document.getElementById('splash');
     const app = document.getElementById('app');
     if (splash) splash.classList.add('fade-out');
     if (app) app.classList.add('app-visible');
-    setTimeout(() => { if (splash) splash.remove(); }, 700);
-  }, 2000);
+    setTimeout(() => { if (splash) splash.remove(); }, 600);
+  }, 800);
 });
 
 // ===== LANGUAGE =====
