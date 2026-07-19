@@ -15,6 +15,7 @@ let previewModal, previewClose, previewTitle, previewPlayer;
 let viewToggle, isListView = false;
 let formatSelect, sortSelect, sortWrap;
 let paginationEl;
+let globalProgressBar, globalProgressFill, globalProgressText;
 
 const queue = new Map();
 let activeDownloads = 0;
@@ -23,9 +24,14 @@ let currentTheme = localStorage.getItem('ytdl-theme') || 'light';
 let downloadDir = '';
 let isOnline = false;
 let progressUnlisten = null;
+let speedLimit = localStorage.getItem('ytdl-speed-limit') || '0';
+let autoUpdateYtdlp = localStorage.getItem('ytdl-auto-update-ytdlp') !== 'false';
+let selectMode = false;
+let selectedVideos = new Map();
 
 let allResults = [];
 let allResultsOriginal = [];
+let currentResults = [];
 let currentPage = 1;
 const PER_PAGE = 32;
 let currentPlaylistUrl = null;
@@ -38,7 +44,7 @@ function getHistory() {
 }
 function saveHistory(item) {
   const h = getHistory();
-  h.unshift({ title: item.title, url: item.url, author: item.author, date: new Date().toISOString() });
+  h.unshift({ title: item.title, url: item.url, author: item.author, date: new Date().toISOString(), filesize: item.filesize || '' });
   if (h.length > 100) h.length = 100;
   localStorage.setItem('ytdl-history', JSON.stringify(h));
 }
@@ -56,18 +62,21 @@ function renderHistory() {
   const list = document.getElementById('history-list');
   if (!list) return;
   const h = getHistory();
-  if (!h.length) {
-    list.innerHTML = `<div class="history-empty"><i class="fas fa-clock-rotate-left"></i><p>${t('history_empty')}</p><p class="sub">${t('history_empty_sub')}</p></div>`;
+  const searchVal = document.getElementById('history-search') ? document.getElementById('history-search').value.trim().toLowerCase() : '';
+  const filtered = searchVal ? h.filter(item => (item.title || '').toLowerCase().includes(searchVal) || (item.author || '').toLowerCase().includes(searchVal)) : h;
+  if (!filtered.length) {
+    list.innerHTML = `<div class="history-empty"><i class="fas fa-clock-rotate-left"></i><p>${searchVal ? t('no_results') : t('history_empty')}</p><p class="sub">${searchVal ? t('no_results_sub') : t('history_empty_sub')}</p></div>`;
     return;
   }
-  list.innerHTML = h.map(item => {
+  list.innerHTML = filtered.map(item => {
     const d = new Date(item.date);
     const dateStr = d.toLocaleDateString(currentLang === 'fr' ? 'fr-FR' : 'en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+    const sizeHtml = item.filesize ? ` <span class="history-size">· ${escHtml(item.filesize)}</span>` : '';
     return `<div class="history-item">
       <div class="history-icon"><i class="fas fa-circle-play"></i></div>
       <div class="history-info">
         <div class="history-title">${escHtml(item.title || 'Video')}</div>
-        <div class="history-meta">${escHtml(item.author || '')} · ${dateStr}</div>
+        <div class="history-meta">${escHtml(item.author || '')} · ${dateStr}${sizeHtml}</div>
       </div>
       <button class="history-delete" data-url="${item.url}" title="${t('remove')}"><i class="fas fa-xmark"></i></button>
     </div>`;
@@ -108,6 +117,12 @@ function openSettings() {
   document.getElementById('settings-lang').value = s.lang;
   document.getElementById('settings-concurrency').value = s.maxConcurrent;
   document.getElementById('settings-folder-display').textContent = s.folder || downloadDir || '~/Downloads/YoutubeDownloader';
+  const speedLimitEl = document.getElementById('settings-speed-limit');
+  if (speedLimitEl) speedLimitEl.value = localStorage.getItem('ytdl-speed-limit') || '0';
+  const autoUpdateEl = document.getElementById('settings-auto-update');
+  if (autoUpdateEl) autoUpdateEl.checked = localStorage.getItem('ytdl-auto-update-ytdlp') !== 'false';
+  const defaultFormatEl = document.getElementById('settings-default-format');
+  if (defaultFormatEl) defaultFormatEl.value = localStorage.getItem('ytdl-default-format') || 'best';
   modal.classList.remove('hidden');
 }
 
@@ -119,6 +134,9 @@ function saveSettings() {
   const theme = document.getElementById('settings-theme').value;
   const lang = document.getElementById('settings-lang').value;
   const concurrency = parseInt(document.getElementById('settings-concurrency').value, 10);
+  const speedLimitVal = document.getElementById('settings-speed-limit') ? document.getElementById('settings-speed-limit').value : '0';
+  const autoUpdateVal = document.getElementById('settings-auto-update') ? document.getElementById('settings-auto-update').checked : true;
+  const defaultFormatVal = document.getElementById('settings-default-format') ? document.getElementById('settings-default-format').value : 'best';
 
   currentTheme = theme;
   document.body.classList.toggle('theme-dark', theme === 'dark');
@@ -130,6 +148,15 @@ function saveSettings() {
 
   maxConcurrent = concurrency;
   localStorage.setItem('ytdl-max-dl', concurrency);
+
+  speedLimit = speedLimitVal;
+  localStorage.setItem('ytdl-speed-limit', speedLimitVal);
+
+  autoUpdateYtdlp = autoUpdateVal;
+  localStorage.setItem('ytdl-auto-update-ytdlp', autoUpdateVal);
+
+  localStorage.setItem('ytdl-default-format', defaultFormatVal);
+  if (formatSelect) formatSelect.value = defaultFormatVal;
 
   closeSettings();
   showToast(currentLang === 'fr' ? 'Paramètres sauvegardés' : 'Settings saved', 'success');
@@ -173,6 +200,11 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   setLang(currentLang);
   applyLang();
+
+  if (formatSelect) {
+    const savedFormat = localStorage.getItem('ytdl-default-format') || 'best';
+    formatSelect.value = savedFormat;
+  }
 
   try {
     const savedDir = localStorage.getItem('ytdl-dir');
@@ -229,6 +261,14 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (settingsSave) settingsSave.addEventListener('click', saveSettings);
   if (settingsModal) settingsModal.addEventListener('click', e => { if (e.target === settingsModal) closeSettings(); });
 
+  // Multi-select
+  const selectModeBtn = $('#select-mode-btn');
+  const bulkDownloadBtn = $('#bulk-download-btn');
+  const selectCancelBtn = $('#select-cancel-btn');
+  if (selectModeBtn) selectModeBtn.addEventListener('click', toggleSelectMode);
+  if (bulkDownloadBtn) bulkDownloadBtn.addEventListener('click', downloadSelected);
+  if (selectCancelBtn) selectCancelBtn.addEventListener('click', () => { selectMode = false; selectedVideos.clear(); document.getElementById('select-toolbar')?.classList.add('hidden'); updateBulkBtn(); renderCards(currentResults); });
+
   sortSelect.addEventListener('change', () => {
     currentSort = sortSelect.value;
     applySort();
@@ -257,6 +297,53 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // Drag & Drop
   setupDragDrop();
+
+  // Clipboard paste detection on search focus
+  searchInput.addEventListener('focus', async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text && text.match(/(?:youtube\.com|youtu\.be)/i) && !searchInput.value.trim()) {
+        searchInput.value = text.trim();
+        showToast(currentLang === 'fr' ? 'Lien collé depuis le presse-papiers' : 'Link pasted from clipboard', 'success');
+      }
+    } catch {}
+  });
+
+  // History search
+  const historySearch = document.getElementById('history-search');
+  if (historySearch) historySearch.addEventListener('input', () => renderHistory());
+
+  // Request notification permission
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+
+  // Auto-update yt-dlp on startup
+  if (autoUpdateYtdlp) {
+    invoke('update_ytdlp').then(res => {
+      if (res !== 'already_up_to_date') showToast(currentLang === 'fr' ? 'yt-dlp mis à jour' : 'yt-dlp updated', 'success');
+    }).catch(() => {});
+  }
+
+  // Check for app updates (Tauri updater plugin)
+  try {
+    if (window.__TAURI__ && window.__TAURI__.updater) {
+      const update = await window.__TAURI__.updater.check();
+      if (update && update.available) {
+        const msg = currentLang === 'fr'
+          ? `Mise à jour disponible: v${update.version}`
+          : `Update available: v${update.version}`;
+        if (confirm(msg + '\n' + (currentLang === 'fr' ? 'Installer maintenant ?' : 'Install now?'))) {
+          await update.downloadAndInstall();
+          if (window.__TAURI__ && window.__TAURI__.process) {
+            window.__TAURI__.process.restart();
+          } else {
+            window.location.reload();
+          }
+        }
+      }
+    }
+  } catch {}
 
   checkConnectivity();
   setInterval(checkConnectivity, 30000);
@@ -703,6 +790,7 @@ function renderPage(page) {
 
   const start = (currentPage - 1) * PER_PAGE;
   const slice = allResults.slice(start, start + PER_PAGE);
+  currentResults = slice;
 
   resultsEl.innerHTML = '';
   renderCards(slice);
@@ -770,8 +858,13 @@ function renderCards(items) {
       ? `<span class="meta-size"><i class="fas fa-hard-drive"></i> ${escHtml(item.filesize)}</span>`
       : '';
 
+    const selectHtml = selectMode
+      ? `<div class="card-select"><input type="checkbox" class="card-checkbox" data-url="${item.url}" data-title="${escHtml(item.title)}" ${selectedVideos.has(item.url) ? 'checked' : ''}></div>`
+      : '';
+
     card.innerHTML = `
       <div class="thumb">
+        ${selectHtml}
         <img src="${item.thumbnail}" alt="${item.title}" loading="lazy" onerror="this.remove()">
         <i class="fas fa-film fallback"></i>
         <div class="play-hover"><i class="fas fa-circle-play"></i></div>
@@ -796,6 +889,15 @@ function renderCards(items) {
 
     card.querySelector('.play-hover').addEventListener('click', () => openPreview(item.url, item.title));
     card.querySelector('.dl-btn').addEventListener('click', e => addToQueue(item.url, item.title, e.currentTarget));
+
+    const checkbox = card.querySelector('.card-checkbox');
+    if (checkbox) {
+      checkbox.addEventListener('change', e => {
+        if (e.target.checked) selectedVideos.set(item.url, item.title);
+        else selectedVideos.delete(item.url);
+        updateBulkBtn();
+      });
+    }
 
     resultsEl.appendChild(card);
   }
@@ -939,13 +1041,18 @@ function updateQueueUI() {
   });
 }
 
-function updateQueueItemProgress(url, percent, status) {
+function updateQueueItemProgress(url, percent, status, speed, eta) {
   const qItem = queueList.querySelector(`[data-qitem="${CSS.escape(url)}"]`);
   if (!qItem) return;
   const fill = qItem.querySelector('.q-fill');
   const meta = qItem.querySelector('.q-meta');
   if (fill) fill.style.width = percent + '%';
-  if (meta) meta.textContent = `${Math.round(percent)}% · ${t('downloading')}`;
+  if (meta) {
+    let text = `${Math.round(percent)}% · ${t('downloading')}`;
+    if (speed) text += ` · ${speed}`;
+    if (eta) text += ` · ETA ${eta}`;
+    meta.textContent = text;
+  }
 }
 
 function removeFromQueue(url) {
@@ -1004,7 +1111,7 @@ async function startDownload(item) {
 
   try {
     const format = formatSelect ? formatSelect.value : 'best';
-    await invoke('download_video', { id: item.id, url: item.url, outputDir: downloadDir, format });
+    await invoke('download_video', { id: item.id, url: item.url, outputDir: downloadDir, format, speedLimit: speedLimit === '0' ? null : speedLimit });
   } catch (err) {
     item.status = 'error';
     updateQueueUI();
@@ -1021,29 +1128,35 @@ function onProgress(event) {
     if (item.id === data.id) {
       item.status = data.status;
       if (data.percent > 0) item.percent = data.percent;
+      if (data.speed) item.speed = data.speed;
+      if (data.eta) item.eta = data.eta;
 
-      updateCardProgress(item.url, item.percent, data.status);
+      updateCardProgress(item.url, item.percent, data.status, data.speed);
 
       if (data.status === 'downloading') {
-        updateQueueItemProgress(item.url, item.percent, data.status);
+        updateQueueItemProgress(item.url, item.percent, data.status, data.speed, data.eta);
+        updateGlobalProgress();
       } else if (data.status === 'finished') {
         showToast(`${item.title || 'Video'} ${t('dl_complete')}`, 'success');
         updateCardProgress(item.url, 100, 'finished');
+        try { if ('Notification' in window && Notification.permission === 'granted') new Notification('YT Downloader', { body: `${item.title || 'Video'} ${t('dl_complete')}`, icon: 'assets/logo.svg' }); } catch {}
         setTimeout(() => {
           queue.delete(item.url);
           updateQueueBadge();
           updateQueueUI();
+          updateGlobalProgress();
         }, 2000);
       } else if (data.status === 'error') {
         showToast(`${data.error || item.title}`, 'error');
         updateCardProgress(item.url, 0, 'error');
+        updateGlobalProgress();
       }
       break;
     }
   }
 }
 
-function updateCardProgress(url, percent, status) {
+function updateCardProgress(url, percent, status, speed) {
   const el = document.querySelector(`[data-card-progress="${CSS.escape(url)}"]`);
   if (!el) return;
   const fill = el.querySelector('.card-progress-fill');
@@ -1051,7 +1164,7 @@ function updateCardProgress(url, percent, status) {
   if (status === 'downloading' || status === 'starting') {
     el.classList.remove('hidden');
     fill.style.width = percent + '%';
-    text.textContent = Math.round(percent) + '%';
+    text.textContent = speed ? `${Math.round(percent)}% · ${speed}` : Math.round(percent) + '%';
   } else if (status === 'finished') {
     el.classList.remove('hidden');
     el.classList.add('finished');
@@ -1065,4 +1178,69 @@ function updateCardProgress(url, percent, status) {
     text.textContent = '\u2717 ' + t('error_label');
     setTimeout(() => { el.classList.add('hidden'); el.classList.remove('error'); }, 3000);
   }
+}
+
+function updateGlobalProgress() {
+  const globalBar = document.getElementById('global-progress');
+  const globalFill = document.getElementById('global-progress-fill');
+  const globalText = document.getElementById('global-progress-text');
+  if (!globalBar || !globalFill || !globalText) return;
+
+  let active = 0, total = 0, totalPercent = 0;
+  for (const [, item] of queue) {
+    total++;
+    if (item.status === 'downloading' || item.status === 'starting') {
+      active++;
+      totalPercent += item.percent;
+    } else if (item.status === 'finished') {
+      totalPercent += 100;
+    }
+  }
+
+  if (total === 0) {
+    globalBar.classList.add('hidden');
+    return;
+  }
+
+  globalBar.classList.remove('hidden');
+  const avg = totalPercent / total;
+  globalFill.style.width = avg + '%';
+
+  let text = `${Math.round(avg)}%`;
+  if (active > 0) text += ` · ${active} en cours`;
+  let speeds = [];
+  for (const [, item] of queue) {
+    if (item.speed && (item.status === 'downloading' || item.status === 'starting')) speeds.push(item.speed);
+  }
+  if (speeds.length) text += ` · ${speeds.join(' + ')}`;
+  globalText.textContent = text;
+}
+
+function toggleSelectMode() {
+  selectMode = !selectMode;
+  if (!selectMode) selectedVideos.clear();
+  const toolbar = document.getElementById('select-toolbar');
+  if (toolbar) toolbar.classList.toggle('hidden', !selectMode);
+  updateBulkBtn();
+  renderCards(currentResults);
+}
+
+function updateBulkBtn() {
+  const bulkBtn = document.getElementById('bulk-download-btn');
+  if (bulkBtn) bulkBtn.disabled = selectedVideos.size === 0;
+  const countEl = document.getElementById('select-count');
+  if (countEl) countEl.textContent = selectedVideos.size;
+}
+
+function downloadSelected() {
+  if (selectedVideos.size === 0) return;
+  for (const [url, title] of selectedVideos) {
+    addToQueue(url, title);
+  }
+  selectedVideos.clear();
+  selectMode = false;
+  const toolbar = document.getElementById('select-toolbar');
+  if (toolbar) toolbar.classList.add('hidden');
+  updateBulkBtn();
+  renderCards(currentResults);
 }

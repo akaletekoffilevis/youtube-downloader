@@ -35,22 +35,28 @@
         if (cmd === "download_video") {
           const id = args.id;
           let percent = 0;
+          const speedBase = 1.5 + Math.random() * 3;
           const interval = setInterval(() => {
             percent += Math.random() * 12 + 3;
+            const speed = (speedBase + Math.random()).toFixed(1) + ' Mo/s';
+            const eta = Math.max(0, Math.round((100 - percent) / 5)) + 's';
             if (percent >= 100) {
               percent = 100;
               clearInterval(interval);
               emitEvent("download-progress", {
-                id, percent: 100, status: "finished", filename: "", error: ""
+                id, percent: 100, status: "finished", speed: '', eta: '', filename: "", error: ""
               });
             } else {
               emitEvent("download-progress", {
-                id, percent, status: "downloading", filename: "", error: ""
+                id, percent, status: "downloading", speed, eta, filename: "", error: ""
               });
             }
           }, 400);
           return;
         }
+        if (cmd === "cancel_download") return;
+        if (cmd === "pause_download") return;
+        if (cmd === "update_ytdlp") return "already_up_to_date";
         if (cmd === "open_in_browser") {
           window.open(args.url, "_blank");
           return;

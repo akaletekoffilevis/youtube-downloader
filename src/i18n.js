@@ -119,6 +119,13 @@ const translations = {
     // Drag & Drop
     drop_title: 'Déposez votre lien ici',
     drop_sub: 'Collez un lien YouTube pour lancer le téléchargement',
+
+    // Select / Multi
+    select_mode: 'Sélection',
+    selected_count: 'sélectionné(s)',
+    select_all: 'Tout télécharger',
+    clipboard_pasted: 'Lien collé depuis le presse-papiers',
+    yt_updated: 'yt-dlp mis à jour',
   },
 
   en: {
@@ -241,6 +248,13 @@ const translations = {
     // Drag & Drop
     drop_title: 'Drop your link here',
     drop_sub: 'Paste a YouTube link to start downloading',
+
+    // Select / Multi
+    select_mode: 'Select',
+    selected_count: 'selected',
+    select_all: 'Download all',
+    clipboard_pasted: 'Link pasted from clipboard',
+    yt_updated: 'yt-dlp updated',
   }
 };
 

@@ -113,7 +113,7 @@
     <span>|</span>
     <a href="https://github.com/akaletekoffilevis/youtube-downloader" id="github-link" class="footer-link" target="_blank" rel="noopener"><i class="fab fa-github"></i> GitHub</a>
     <span>|</span>
-    <span>&copy; 2026 Koffi Levis Akalete</span>
+    <span>&copy; 2026 akaletekoffilevis</span>
     <span>|</span>
     <span>All Rights Reserved</span>
   </div>
@@ -138,6 +138,10 @@
       </button>
       <button id="history-close" class="queue-close"><i class="fas fa-xmark"></i></button>
     </div>
+  </div>
+  <div class="history-search-wrap">
+    <i class="fas fa-search"></i>
+    <input type="text" id="history-search" placeholder="Rechercher dans l'historique..." autocomplete="off">
   </div>
   <div id="history-list" class="history-body"></div>
 </div>
@@ -238,6 +242,17 @@
         </select>
       </div>
       <div class="modal-field">
+        <label>Format par défaut</label>
+        <select id="settings-default-format">
+          <option value="best">Meilleure qualité</option>
+          <option value="1080">1080p</option>
+          <option value="720">720p</option>
+          <option value="480">480p</option>
+          <option value="360">360p</option>
+          <option value="audio">Audio uniquement (MP3)</option>
+        </select>
+      </div>
+      <div class="modal-field">
         <label>Téléchargements simultanés</label>
         <select id="settings-concurrency">
           <option value="1">1</option>
@@ -248,7 +263,29 @@
         </select>
       </div>
       <div class="modal-field">
+        <label>Limite de vitesse (0 = illimité)</label>
+        <select id="settings-speed-limit">
+          <option value="0">Illimité</option>
+          <option value="500K">500 Ko/s</option>
+          <option value="1M">1 Mo/s</option>
+          <option value="2M">2 Mo/s</option>
+          <option value="5M">5 Mo/s</option>
+          <option value="10M">10 Mo/s</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="checkbox" id="settings-auto-update" style="width:16px;height:16px;accent-color:var(--primary)">
+          Mettre à jour yt-dlp automatiquement
+        </label>
+      </div>
+      <div class="modal-field">
         <label>Dossier de destination</label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span id="settings-folder-display" style="flex:1;font-family:monospace;font-size:11px;color:var(--text-secondary);padding:8px 12px;background:var(--card-bg);border:0.5px solid var(--border);border-radius:var(--radius-xs);overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+        </div>
+      </div>
+    </div></label>
         <div style="display:flex;align-items:center;gap:8px">
           <span id="settings-folder-display" style="flex:1;font-family:monospace;font-size:11px;color:var(--text-secondary);padding:8px 12px;background:var(--card-bg);border:0.5px solid var(--border);border-radius:var(--radius-xs);overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
         </div>

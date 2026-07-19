@@ -87,3 +87,90 @@ jobs:
           releaseDraft: false
           prerelease: false
           args: --target ${{ matrix.target }}
+
+  generate-updater-json:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Tauri CLI
+        run: npm install -g @tauri-apps/cli
+
+      - name: Generate latest.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "Generating updater JSON for version $VERSION..."
+
+          # Get release assets
+          RELEASE_JSON=$(curl -sL \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.ref_name }}")
+
+          # Build latest.json manually for all platforms
+          cat > latest.json << 'LATEST_EOF'
+          {
+            "version": "VERSION_PLACEHOLDER",
+            "notes": "YouTube Downloader VERSION_PLACEHOLDER - Mise à jour automatique",
+            "pub_date": "PUB_DATE_PLACEHOLDER",
+            "platforms": {}
+          }
+          LATEST_EOF
+
+          # Get pub_date from release
+          PUB_DATE=$(echo "$RELEASE_JSON" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('published_at','')[:19].replace(' ','T')+'Z')")
+          sed -i "s/VERSION_PLACEHOLDER/$VERSION/g" latest.json
+          sed -i "s/PUB_DATE_PLACEHOLDER/$PUB_DATE/g" latest.json
+
+          # Extract platform info from assets
+          python3 << PYEOF
+          import json, re
+
+          with open('latest.json') as f:
+              data = json.load(f)
+
+          release = json.loads('''$RELEASE_JSON''')
+          assets = release.get('assets', [])
+
+          platform_map = {
+              'x86_64-pc-windows-msvc': {'sig': '.sig', 'ext': '.exe'},
+              'aarch64-apple-darwin': {'sig': '.sig', 'ext': '.AppImage.tar.gz'},
+              'x86_64-apple-darwin': {'sig': '.sig', 'ext': '.AppImage.tar.gz'},
+              'x86_64-unknown-linux-gnu': {'sig': '.sig', 'ext': '.AppImage.tar.gz'},
+          }
+
+          for asset in assets:
+              name = asset['name']
+              url = asset['browser_download_url']
+              for target, info in platform_map.items():
+                  if target.replace('-', '_') in name.replace('-', '_') or target in name:
+                      sig_name = name + '.sig'
+                      sig_url = url + '.sig'
+                      if any(a['name'] == sig_name for a in assets):
+                          data['platforms'][target] = {
+                              'signature': sig_url,
+                              'url': url
+                          }
+                          break
+
+          with open('latest.json', 'w') as f:
+              json.dump(data, f, indent=2)
+          PYEOF
+
+          cat latest.json
+
+      - name: Upload latest.json to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ github.ref_name }}"
+          curl -sL \
+            -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @latest.json \
+            "https://uploads.github.com/repos/${{ github.repository }}/releases/$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/tags/$TAG | python3 -c 'import sys,json;print(json.load(sys.stdin)["id"])')/assets?name=latest.json"

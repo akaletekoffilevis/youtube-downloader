@@ -19,7 +19,15 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; img-src 'self' https://i.ytimg.com; style-src 'self' 'unsafe-inline'; font-src 'self' data:; frame-src https://www.youtube.com https://www.youtube-nocookie.com; script-src 'self'; media-src https://www.youtube.com https://www.youtube-nocookie.com https://*.googlevideo.com; connect-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.googlevideo.com"
+      "csp": "default-src 'self'; img-src 'self' https://i.ytimg.com https://*.ytimg.com data:; style-src 'self' 'unsafe-inline' https://*.youtube.com; font-src 'self' data:; frame-src https://www.youtube.com https://*.youtube.com https://www.youtube-nocookie.com https://*.youtube-nocookie.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.youtube.com https://*.youtube-nocookie.com; media-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.googlevideo.com; connect-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.googlevideo.com https://*.youtube.com https://api.github.com"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAsVWxHtyWWCt2o42LO5iXmAw4AFBtkvj2KKDQgL+KfoeDWpLs0rv3FdmXj1KHNMGlCYdx6Mtet7Ols6+kqjWbNkkkYvcATObqJgctnT8h6zR/IqhTUq5INP1DW2OG0tkOizP++MNvqjv00hKXQL4+t/H7E/MVDOwVLUTKZaFIqUMCRcF28kEI8JOIfa93IYUtFqWWblvg9MrLw/o6yd4UCL8YlBKuVo1+ieLZ4IrTWAHvoluKXQzf4v+dUVJa3RcqufhbiLxIw0w1zLCiTzKIJav/C1NBiR+3ziVBujA9tY45qxjV9Y1NvUAz1mnh96FbMTkofijWMWbTLIldW5xEfGPz3J65lKgAQGJLjb4iSi7xlQTNBjj3XWvQydNwgBvPUyup4PoTGifJ57DaAeYpFzfajtN6E+yafN/NS2sCp8+Eb8Hj67PK3Nt++JClTHWY815WilGdivmBkj+PzHDuft2haKmSXyYTwYoIKYU+kUuoo6AsrnsB1MLTZSXGPLWQWBBr/eFp2q4726MkyBIejRoxIbarM5S4HMhbGKR4mEHB9Njyz0uHiBZ6b9fKpph02PZ1jn3ONdJcN7FOiHkDPKOjPkYOTCn30Be2Z7Hf1PLx0921EQDE5rdiFF60jtRKPhfHchbnVMC76DTSOdm6AFRh1T9/LNhzvKGdir0Dbc8CAwEAAQ==",
+      "endpoints": [
+        "https://github.com/akaletekoffilevis/youtube-downloader/releases/latest/download/latest.json"
+      ]
     }
   },
   "bundle": {
@@ -43,7 +51,9 @@
     },
     "linux": {
       "deb": {
-        "depends": []
+        "depends": [],
+        "maintainer": "Koffi Levis Akalete <koffilevis21@gmail.com>",
+        "section": "utils"
       }
     }
   }

@@ -60,6 +60,10 @@ pub struct ProgressPayload {
     pub status: String,
     pub filename: String,
     pub error: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub speed: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub eta: Option<String>,
 }
 
 fn extract_video(json: &serde_json::Value) -> VideoItem {
@@ -185,6 +189,7 @@ fn get_download_dir() -> String {
 #[tauri::command]
 async fn download_video(
     app: AppHandle, id: String, url: String, output_dir: String, format: String,
+    speed_limit: Option<String>,
 ) -> Result<(), String> {
     std::fs::create_dir_all(&output_dir).map_err(|e| format!("Dossier impossible: {}", e))?;
     let output_template = format!("{}/%(title)s.%(ext)s", output_dir);
@@ -201,6 +206,13 @@ async fn download_video(
             "--progress-template".into(),
             "progress:%(progress.percent)s|%(progress.speed)s|%(progress.eta)s".into(),
         ];
+
+        if let Some(ref limit) = speed_limit {
+            if limit != "0" && !limit.is_empty() {
+                args.push("--limit-rate".into());
+                args.push(limit.clone());
+            }
+        }
         match format.as_str() {
             "audio" => {
                 args.push("--extract-audio".into());
@@ -224,6 +236,7 @@ async fn download_video(
                 app2.emit("download-progress", ProgressPayload {
                     id: id2.clone(), percent: 0.0, status: "error".into(),
                     filename: String::new(), error: format!("Impossible de lancer yt-dlp: {}", e),
+                    speed: None, eta: None,
                 }).ok();
                 return;
             }
@@ -236,6 +249,7 @@ async fn download_video(
                 app2.emit("download-progress", ProgressPayload {
                     id: id2.clone(), percent: 0.0, status: "error".into(),
                     filename: String::new(), error: format!("Impossible de lancer yt-dlp: {}", e),
+                    speed: None, eta: None,
                 }).ok();
                 return;
             }
@@ -256,9 +270,12 @@ async fn download_video(
                     if trimmed.starts_with("progress:") {
                         let data: Vec<&str> = trimmed[9..].split('|').collect();
                         let percent: f64 = data.first().and_then(|s| s.parse().ok()).unwrap_or(0.0);
+                        let speed = data.get(1).filter(|s| !s.is_empty() && *s != "NA").map(|s| s.to_string());
+                        let eta = data.get(2).filter(|s| !s.is_empty() && *s != "NA").map(|s| s.to_string());
                         app2.emit("download-progress", ProgressPayload {
                             id: id2.clone(), percent, status: "downloading".into(),
                             filename: String::new(), error: String::new(),
+                            speed, eta,
                         }).ok();
                     }
                 }
@@ -282,6 +299,7 @@ async fn download_video(
             status: if success { "finished".into() } else { "error".into() },
             filename: String::new(),
             error: if success { String::new() } else { "Échec du téléchargement".into() },
+            speed: None, eta: None,
         }).ok();
     }).await.map_err(|e| e.to_string())?;
     Ok(())
@@ -367,6 +385,24 @@ fn check_dir_exists(path: String) -> bool {
 }
 
 #[tauri::command]
+async fn update_ytdlp(app: AppHandle) -> Result<String, String> {
+    let yt = find_ytdlp(&app)?;
+    let output = tokio::task::spawn_blocking(move || {
+        Command::new(&yt).args(["-U"]).output()
+    }).await.map_err(|e| e.to_string())?
+        .map_err(|e| format!("Impossible de lancer yt-dlp: {}", e))?;
+    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+    if stdout.contains("is up to date") || stderr.contains("is up to date") {
+        Ok("already_up_to_date".into())
+    } else if output.status.success() {
+        Ok(stdout.trim().to_string())
+    } else {
+        Err(clean_ytdlp_err(&stderr))
+    }
+}
+
+#[tauri::command]
 async fn get_file_size(app: AppHandle, url: String, format: String) -> Result<String, String> {
     let yt = find_ytdlp(&app)?;
     let fmt = format.clone();
@@ -406,12 +442,13 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(DownloadState { processes: Arc::new(Mutex::new(HashMap::new())) })
         .invoke_handler(tauri::generate_handler![
             search_videos, get_video_info, get_playlist, get_download_dir,
             download_video, pause_download, resume_download, cancel_download,
             check_network, pick_folder, open_in_browser, check_dir_exists,
-            get_file_size,
+            get_file_size, update_ytdlp,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
