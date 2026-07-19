@@ -1,14 +1,14 @@
-# YouTube Downloader - Installateur Windows (PowerShell)
+# YT Downloader - Installateur Windows (PowerShell)
 # Auteur: Koffi Levis Akalete
 # Utilisation: iex (irm https://raw.githubusercontent.com/akaletekoffilevis/youtube-downloader/main/scripts/install.ps1)
 
 $ErrorActionPreference = "Stop"
 $REPO = "akaletekoffilevis/youtube-downloader"
-$INSTALL_DIR = "$env:LOCALAPPDATA\YouTubeDownloader"
-$APP_EXE = "$INSTALL_DIR\YouTube Downloader.exe"
+$INSTALL_DIR = "$env:LOCALAPPDATA\YTDownloader"
+$APP_EXE = "$INSTALL_DIR\YTDownloader.exe"
 
 Write-Host ""
-Write-Host "  YouTube Downloader - Installation" -ForegroundColor Cyan
+Write-Host "  YT Downloader - Installation" -ForegroundColor Cyan
 Write-Host "  Auteur: Koffi Levis Akalete" -ForegroundColor Gray
 Write-Host ""
 
@@ -37,25 +37,25 @@ Write-Host "  Telecharge: $exePath" -ForegroundColor Green
 # Installer
 Write-Host "[3/4] Installation dans $INSTALL_DIR..." -ForegroundColor Yellow
 if (-not (Test-Path $INSTALL_DIR)) { New-Item -ItemType Directory -Path $INSTALL_DIR -Force | Out-Null }
-Copy-Item $exePath "$INSTALL_DIR\YouTube Downloader.exe" -Force
+Copy-Item $exePath "$INSTALL_DIR\YTDownloader.exe" -Force
 Remove-Item $exePath -Force
 Write-Host "  Installe!" -ForegroundColor Green
 
 # Creer raccourci bureau
 Write-Host "[4/4] Creation du raccourci Bureau..." -ForegroundColor Yellow
-$shortcutPath = "$env:USERPROFILE\Desktop\YouTube Downloader.lnk"
+$shortcutPath = "$env:USERPROFILE\Desktop\YT Downloader.lnk"
 $shell = New-Object -ComObject WScript.Shell
 $shortcut = $shell.CreateShortcut($shortcutPath)
 $shortcut.TargetPath = $APP_EXE
 $shortcut.WorkingDirectory = $INSTALL_DIR
-$shortcut.Description = "YouTube Downloader - Koffi Levis Akalete"
+$shortcut.Description = "YT Downloader - Koffi Levis Akalete"
 $shortcut.Save()
 Write-Host "  Raccourci cree sur le Bureau!" -ForegroundColor Green
 
 Write-Host ""
 Write-Host "  Installation terminee!" -ForegroundColor Green
 Write-Host "  Version: $version | Repertoire: $INSTALL_DIR" -ForegroundColor Gray
-Write-Host "  Lancez YouTube Downloader depuis le Bureau ou le Menu Demarrer." -ForegroundColor Gray
+Write-Host "  Lancez YT Downloader depuis le Bureau ou le Menu Demarrer." -ForegroundColor Gray
 Write-Host ""
 
 # Proposer de lancer

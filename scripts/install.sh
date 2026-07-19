@@ -1,5 +1,5 @@
 #!/bin/bash
-# YouTube Downloader - Installateur Linux/macOS
+# YT Downloader - Installateur Linux/macOS
 # Auteur: Koffi Levis Akalete
 # Utilisation: curl -fsSL https://raw.githubusercontent.com/akaletekoffilevis/youtube-downloader/main/scripts/install.sh | bash
 
@@ -15,7 +15,7 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 
 echo ""
-echo -e "${CYAN}  YouTube Downloader - Installation${NC}"
+echo -e "${CYAN}  YT Downloader - Installation${NC}"
 echo -e "${GRAY}  Auteur: Koffi Levis Akalete${NC}"
 echo ""
 

@@ -1,7 +1,7 @@
 [package]
 name = "youtube-downloader"
 version = "0.2.1"
-description = "YouTube Downloader - Simple et léger"
+description = "YT Downloader - Simple et léger"
 authors = ["you"]
 edition = "2021"
 

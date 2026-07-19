@@ -24,7 +24,7 @@
   <path d="M82 105 L100 123 L118 105" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
   <path d="M75 130 L125 130" stroke="rgba(255,255,255,0.7)" stroke-width="6" stroke-linecap="round"/>
   <!-- Title -->
-  <text x="180" y="90" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif" font-size="36" font-weight="700" fill="#e8e8f0">YouTube Downloader</text>
+  <text x="180" y="90" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif" font-size="36" font-weight="700" fill="#e8e8f0">YT Downloader</text>
   <!-- Subtitle -->
   <text x="180" y="125" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif" font-size="16" fill="#9ca3af" font-weight="400">Simple et léger · Tauri 2 · Rust + HTML/CSS/JS</text>
   <!-- Badge -->

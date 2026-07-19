@@ -83,7 +83,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         with:
           tagName: ${{ github.ref_name }}
-          releaseName: 'YouTube Downloader ${{ github.ref_name }}'
+          releaseName: 'YT Downloader ${{ github.ref_name }}'
           releaseBody: 'See the assets to download and install this version.'
           releaseDraft: false
           prerelease: false
@@ -116,7 +116,7 @@ jobs:
           cat > latest.json << 'LATEST_EOF'
           {
             "version": "VERSION_PLACEHOLDER",
-            "notes": "YouTube Downloader VERSION_PLACEHOLDER - Mise à jour automatique",
+            "notes": "YT Downloader VERSION_PLACEHOLDER - Mise à jour automatique",
             "pub_date": "PUB_DATE_PLACEHOLDER",
             "platforms": {}
           }

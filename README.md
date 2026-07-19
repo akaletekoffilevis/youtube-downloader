@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/banner.svg" alt="YouTube Downloader Banner" width="100%"/>
+  <img src="docs/banner.svg" alt="YT Downloader Banner" width="100%"/>
 </p>
 
 <p align="center">
@@ -23,7 +23,7 @@
 
 ---
 
-## YouTube Downloader
+## YT Downloader
 
 Application de bureau moderne et légère pour télécharger des vidéos YouTube. Construite avec **Tauri 2** (backend Rust + frontend HTML/CSS/JS), elle offre une expérience fluide, un design premium glassmorphism et un support bilingue FR/EN.
 
@@ -330,31 +330,7 @@ Utilise le [formulaire de contact](https://yt-downloader-docs.vercel.app/contact
 
 ## Licence
 
-Ce projet est sous licence **MIT**. Tu peux l'utiliser, le modifier et le redistribuer librement.
-
-```
-MIT License
-
-Copyright (c) 2026 Koffi Levis Akalete
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
+Ce projet est sous licence **MIT**. Voir le fichier [LICENSE](LICENSE) pour les détails.
 
 ---
 

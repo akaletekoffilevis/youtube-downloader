@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "YouTube Downloader",
+  "productName": "YT Downloader",
   "version": "0.2.1",
   "identifier": "com.ytdownloader.app",
   "build": {
@@ -10,7 +10,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "YouTube Downloader",
+        "title": "YT Downloader",
         "width": 960,
         "height": 680,
         "minWidth": 640,

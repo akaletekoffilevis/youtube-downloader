@@ -1,10 +1,10 @@
 @echo off
-:: YouTube Downloader - Installateur Windows (CMD)
+:: YT Downloader - Installateur Windows (CMD)
 :: Auteur: Koffi Levis Akalete
 :: Utilisation: telechargez et double-cliquez ce fichier .bat
 
 echo.
-echo   YouTube Downloader - Installation
+echo   YT Downloader - Installation
 echo   Auteur: Koffi Levis Akalete
 echo.
 
@@ -32,13 +32,13 @@ if not exist %TEMP%\YTDownloader.exe (
 
 echo [3/4] Installation...
 if not exist "%INSTALL_DIR%" mkdir "%INSTALL_DIR%"
-move /Y %TEMP%\YTDownloader.exe "%INSTALL_DIR%\YouTube Downloader.exe"
+move /Y %TEMP%\YTDownloader.exe "%INSTALL_DIR%\YTDownloader.exe"
 
 echo [4/4] Raccourci Bureau...
-powershell -Command "$s=(New-Object -COM WScript.Shell).CreateShortcut('%USERPROFILE%\Desktop\YouTube Downloader.lnk'); $s.TargetPath='%INSTALL_DIR%\YouTube Downloader.exe'; $s.WorkingDirectory='%INSTALL_DIR%'; $s.Description='YouTube Downloader - Koffi Levis Akalete'; $s.Save()"
+powershell -Command "$s=(New-Object -COM WScript.Shell).CreateShortcut('%USERPROFILE%\Desktop\YT Downloader.lnk'); $s.TargetPath='%INSTALL_DIR%\YTDownloader.exe'; $s.WorkingDirectory='%INSTALL_DIR%'; $s.Description='YT Downloader - Koffi Levis Akalete'; $s.Save()"
 
 echo.
 echo   Installation terminee!
-echo   Lancez YouTube Downloader depuis le Bureau.
+echo   Lancez YT Downloader depuis le Bureau.
 echo.
 pause

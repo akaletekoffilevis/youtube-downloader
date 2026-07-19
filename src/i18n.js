@@ -42,7 +42,7 @@ const translations = {
     loading_sub: 'Découvre les meilleures vidéos pour toi',
 
     // Empty states
-    app_name: 'YouTube Downloader',
+    app_name: 'YT Downloader',
     empty_hint: 'Recherchez une vidéo ou collez une URL pour commencer',
     no_results: 'Aucun résultat',
     no_results_sub: 'Essaie une autre recherche',
@@ -171,7 +171,7 @@ const translations = {
     loading_sub: 'Discovering the best videos for you',
 
     // Empty states
-    app_name: 'YouTube Downloader',
+    app_name: 'YT Downloader',
     empty_hint: 'Search for a video or paste a URL to get started',
     no_results: 'No results',
     no_results_sub: 'Try a different search',
