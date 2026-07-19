@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.2.0-6366f1?style=flat-square" alt="Version"/>
+  <img src="https://img.shields.io/badge/version-0.2.1-6366f1?style=flat-square" alt="Version"/>
   <img src="https://img.shields.io/badge/rust-2021-orange?style=flat-square&logo=rust" alt="Rust"/>
   <img src="https://img.shields.io/badge/tauri-2.x-FFC131?style=flat-square&logo=tauri" alt="Tauri"/>
   <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License"/>
@@ -265,6 +265,11 @@ Sauvegardé dans `localStorage` (`ytdl-history`), max 100 entrées.
 ---
 
 ## Changelog
+
+### v0.2.1 — 19 Juillet 2026
+- **Fix** : correction asset yt-dlp Windows (`yt-dlp_win.exe` → `yt-dlp.exe`)
+- **Multi-arch** : ajout builds Windows 32-bit (i686) et macOS Intel (x86_64)
+- **5 plateformes** : Windows x64, Windows x86, Linux x64, macOS ARM64, macOS Intel
 
 ### v0.2.0 — 14 Juillet 2026
 - **yt-dlp intégré** (sidecar) — aucune dépendance externe

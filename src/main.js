@@ -443,7 +443,7 @@ function applyLang() {
 
   const footer = $('.app-footer');
   if (footer) {
-    footer.innerHTML = `<span class="version">v0.2.0</span> <span>|</span> <span>YouTube Downloader</span> <span>|</span> <a href="#" id="github-link" class="footer-link" target="_blank" rel="noopener"><i class="fab fa-github"></i> GitHub</a> <span>|</span> <span>&copy; 2026 Koffi Levis Akalete</span> <span>|</span> <span>${t('all_rights')}</span>`;
+    footer.innerHTML = `<span class="version">v0.2.1</span> <span>|</span> <span>YouTube Downloader</span> <span>|</span> <a href="#" id="github-link" class="footer-link" target="_blank" rel="noopener"><i class="fab fa-github"></i> GitHub</a> <span>|</span> <span>&copy; 2026 Koffi Levis Akalete</span> <span>|</span> <span>${t('all_rights')}</span>`;
   }
 
   if (allResults.length > 0) renderPage(currentPage);
