@@ -51,9 +51,7 @@
     },
     "linux": {
       "deb": {
-        "depends": [],
-        "maintainer": "Koffi Levis Akalete <koffilevis21@gmail.com>",
-        "section": "utils"
+        "depends": []
       }
     }
   }

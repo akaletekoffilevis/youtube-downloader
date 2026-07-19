@@ -270,8 +270,8 @@ async fn download_video(
                     if trimmed.starts_with("progress:") {
                         let data: Vec<&str> = trimmed[9..].split('|').collect();
                         let percent: f64 = data.first().and_then(|s| s.parse().ok()).unwrap_or(0.0);
-                        let speed = data.get(1).filter(|s| !s.is_empty() && *s != "NA").map(|s| s.to_string());
-                        let eta = data.get(2).filter(|s| !s.is_empty() && *s != "NA").map(|s| s.to_string());
+                        let speed = data.get(1).filter(|s| !s.is_empty() && **s != "NA").map(|s| s.to_string());
+                        let eta = data.get(2).filter(|s| !s.is_empty() && **s != "NA").map(|s| s.to_string());
                         app2.emit("download-progress", ProgressPayload {
                             id: id2.clone(), percent, status: "downloading".into(),
                             filename: String::new(), error: String::new(),
