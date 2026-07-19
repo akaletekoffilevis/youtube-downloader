@@ -18,7 +18,7 @@ jobs:
             ytdlp_bin: yt-dlp-x86_64-unknown-linux-gnu
           - platform: windows-latest
             target: x86_64-pc-windows-msvc
-            ytdlp_asset: yt-dlp_win.exe
+            ytdlp_asset: yt-dlp.exe
             ytdlp_bin: yt-dlp-x86_64-pc-windows-msvc.exe
           - platform: macos-latest
             target: aarch64-apple-darwin
